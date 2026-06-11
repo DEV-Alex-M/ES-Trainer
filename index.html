@@ -858,6 +858,77 @@
       font-weight:900;
     }
 
+
+.match-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.match-card{padding:12px;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;font-weight:bold}
+.match-card.selected{outline:3px solid gold}
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.memory-card{padding:16px;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;min-height:60px}
+
+    .minigame-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .match-grid,.memory-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+      gap:10px;
+      margin-top:14px;
+    }
+    .match-card,.memory-card{
+      border:2px solid var(--border);
+      border-radius:16px;
+      padding:14px 12px;
+      cursor:none;
+      text-align:center;
+      font-weight:900;
+      min-height:64px;
+      display:grid;
+      place-items:center;
+      background:radial-gradient(circle at 15% 0%,rgba(245,158,11,.14),transparent 35%),var(--input);
+      transition:transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, opacity 140ms ease;
+      user-select:none;
+    }
+    .match-card:hover,.memory-card:hover{
+      transform:translateY(-2px) scale(1.02);
+      border-color:var(--gold);
+      box-shadow:0 0 0 4px color-mix(in srgb,var(--gold),transparent 72%),0 14px 28px rgba(245,158,11,.18);
+    }
+    .match-card.selected,.memory-card.flipped{
+      border-color:var(--accent);
+      box-shadow:0 0 0 4px color-mix(in srgb,var(--accent),transparent 72%);
+      background:radial-gradient(circle at 20% 0%,rgba(59,130,246,.20),transparent 35%),var(--input);
+    }
+    .match-card.solved,.memory-card.solved{
+      opacity:.35;
+      transform:scale(.96);
+      pointer-events:none;
+    }
+    .minigame-result{
+      margin-top:14px;
+      padding:12px;
+      border-radius:16px;
+      background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(245,158,11,.12),rgba(59,130,246,.12)),var(--input);
+      border:1px solid var(--soft-border);
+      font-weight:900;
+    }
+
+
+    .match-card.prompt,.memory-card[data-role="prompt"].flipped{
+      border-style:dashed;
+    }
+    .match-card.answer,.memory-card[data-role="answer"].flipped{
+      border-style:solid;
+    }
+    .match-card small,.memory-card small{
+      color:var(--muted);
+      font-size:.72rem;
+      font-weight:1000;
+      letter-spacing:.04em;
+    }
+
 </style>
 </head>
 <body>
@@ -894,6 +965,7 @@
     <button class="tab-btn" data-tab="weekly-test">🧪 Weekly Test</button>
     <button class="tab-btn" data-tab="phrasebook">📘 Phrasebook</button>
     <button class="tab-btn" data-tab="review">🔁 Review</button>
+    <button class="tab-btn" data-tab="minigames">🎮 Minigames</button>
     <button class="tab-btn" data-tab="random">🎲 Random List</button>
     <button class="tab-btn" data-tab="backup">💾 Backup</button>
     <button class="tab-btn" data-tab="debug">🛠 Debug</button>
@@ -1043,6 +1115,26 @@
 
   <section id="tab-random" class="tab-panel">
     <section class="card"><div class="toolbar"><h2 style="margin:0">Random words & sentences</h2><button id="shuffleList" class="secondary">Shuffle list</button></div><div id="randomList" class="list"></div></section>
+  </section>
+
+
+  <section id="tab-minigames" class="tab-panel">
+    <section class="card">
+      <div class="toolbar">
+        <div>
+          <h2 style="margin:0">🎮 Minigames</h2>
+          <p class="muted" style="margin:.25rem 0 0">Short vocabulary games for a quick fun practice break.</p>
+        </div>
+        <div class="row">
+          <button id="startMatchGameBtn" type="button">🃏 DE → ES Match</button>
+          <button id="startMemoryGameBtn" class="secondary" type="button">🧠 DE → ES Memory</button>
+        </div>
+      </div>
+      <div id="minigameArea" class="test-box">
+        <strong>Choose a minigame</strong>
+        <p class="muted">Both games train German → Spanish by pairing DE prompts with ES translations.</p>
+      </div>
+    </section>
   </section>
 
   <section id="tab-backup" class="tab-panel">
@@ -1566,6 +1658,7 @@
     if(name==="review"){ renderReview(); renderErrors(); }
     if(name==="random") renderRandom();
     if(name==="calendar") renderCalendar();
+    if(name==="minigames"){ renderMinigamesHome(); bindMinigameButtons(); }
     if(name==="debug") renderDebugQuestionSearch();
   }
 
@@ -2909,11 +3002,151 @@
   }
 
 
-  function init(){
+  
+
+
+let matchFirst=null,matchPairs=0,memoryFirst=null,memoryLock=false,memorySolved=0;
+
+function minigameWords(count=4){
+  const words = DATA.filter(x=>x.type==="word");
+  return shuffle(words).slice(0,count);
+}
+
+function awardMinigameXP(amount, label){
+  const levelBefore = levelName(progress.xp);
+  progress.xp += amount;
+  progress.dailyXP = (progress.dailyXP || 0) + amount;
+  progress.weeklyXP = (progress.weeklyXP || 0) + amount;
+  progress.monthlyXP = (progress.monthlyXP || 0) + amount;
+  recordStudyActivity();
+  markPracticeDay();
+  showFloatingXP(amount);
+  playCorrectSound();
+  confetti();
+  showToast("🎮 Minigame complete!", `${label}: +${amount} XP`, true);
+  if(levelName(progress.xp) !== levelBefore) showLevelUpCelebration(levelBefore, levelName(progress.xp));
+  award();
+  checkChestMilestones();
+  save();
+}
+
+function renderMinigamesHome(){
+  const area=document.getElementById("minigameArea");
+  if(!area)return;
+  if(area.dataset.activeGame)return;
+  area.innerHTML=`<strong>Choose a minigame</strong>
+    <p class="muted">These games train German → Spanish. Match the German prompt to the Spanish answer.</p>
+    <div class="minigame-actions">
+      <button id="startMatchGameInnerBtn" type="button">🃏 DE → ES Match</button>
+      <button id="startMemoryGameInnerBtn" type="button" class="secondary">🧠 DE → ES Memory</button>
+    </div>`;
+  bindMinigameButtons();
+}
+function startMatchGame(){
+ const words=minigameWords(5);
+ let cards=[];
+ words.forEach((w,i)=>{
+   cards.push({id:i,text:displayWithArticle(w,"de"),lang:"DE",role:"prompt"});
+   cards.push({id:i,text:displayWithArticle(w,"es"),lang:"ES",role:"answer"});
+ });
+ cards=shuffle(cards);
+ const area=document.getElementById("minigameArea");
+ area.dataset.activeGame="match";
+ area.innerHTML='<strong>🃏 DE → ES Word Match</strong><p class="muted">Click a German card and its matching Spanish translation.</p><div class="match-grid">'+cards.map((c,i)=>`<div class="match-card ${c.role}" data-id="${c.id}" data-role="${c.role}" data-idx="${i}"><small>${c.lang}</small><br>${esc(c.text)}</div>`).join('')+'</div>';
+ matchFirst=null;matchPairs=0;
+ area.querySelectorAll('.match-card').forEach(el=>el.onclick=()=>{
+   if(el.classList.contains("solved")) return;
+   if(!matchFirst){matchFirst=el;el.classList.add('selected');return;}
+   if(matchFirst===el)return;
+
+   const differentRoles = matchFirst.dataset.role !== el.dataset.role;
+   if(matchFirst.dataset.id===el.dataset.id && differentRoles){
+      matchFirst.classList.remove('selected');
+      matchFirst.classList.add('solved');
+      el.classList.add('solved');
+      matchPairs++;
+      playCorrectSound();
+      showCorrectFlash();
+      if(matchPairs===words.length){
+        area.insertAdjacentHTML('beforeend','<div class="minigame-result">🎉 DE → ES Match complete! +25 XP</div>');
+        area.dataset.activeGame="";
+        awardMinigameXP(25,"DE → ES Match");
+      }
+   }else{
+      playWrongSound();
+      matchFirst.classList.remove('selected');
+      el.classList.add('selected');
+      setTimeout(()=>el.classList.remove('selected'),220);
+   }
+   matchFirst=null;
+ });
+}
+
+function startMemoryGame(){
+ const words=minigameWords(5);
+ let cards=[];
+ words.forEach((w,i)=>{
+   cards.push({id:i,text:displayWithArticle(w,"de"),lang:"DE",role:"prompt"});
+   cards.push({id:i,text:displayWithArticle(w,"es"),lang:"ES",role:"answer"});
+ });
+ cards=shuffle(cards);
+ const area=document.getElementById("minigameArea");
+ area.dataset.activeGame="memory";
+ area.innerHTML='<strong>🧠 DE → ES Memory</strong><p class="muted">Flip cards and find German words with their Spanish translations.</p><div class="memory-grid">'+cards.map((c,i)=>`<div class="memory-card" data-id="${c.id}" data-role="${c.role}" data-text="${esc(c.text)}" data-lang="${c.lang}">?</div>`).join('')+'</div>';
+ memoryFirst=null;memoryLock=false;memorySolved=0;
+ area.querySelectorAll('.memory-card').forEach(el=>el.onclick=()=>{
+   if(memoryLock||el.classList.contains("solved")||el.classList.contains("flipped")) return;
+   el.innerHTML=`<small>${el.dataset.lang}</small><br>${el.dataset.text}`;
+   el.classList.add("flipped");
+   if(!memoryFirst){memoryFirst=el;return;}
+   memoryLock=true;
+   setTimeout(()=>{
+      const differentRoles = memoryFirst.dataset.role !== el.dataset.role;
+      if(memoryFirst.dataset.id===el.dataset.id && differentRoles){
+         memoryFirst.classList.add('solved');
+         el.classList.add('solved');
+         memorySolved++;
+         playCorrectSound();
+         if(memorySolved===words.length){
+           area.insertAdjacentHTML('beforeend','<div class="minigame-result">🎉 DE → ES Memory complete! +25 XP</div>');
+           area.dataset.activeGame="";
+           awardMinigameXP(25,"DE → ES Memory");
+         }
+      }else{
+         playWrongSound();
+         memoryFirst.textContent='?';
+         el.textContent='?';
+         memoryFirst.classList.remove("flipped");
+         el.classList.remove("flipped");
+      }
+      memoryFirst=null;memoryLock=false;
+   },750);
+ });
+}
+
+
+  function bindMinigameButtons(){
+    const ids = [
+      ["startMatchGameBtn", startMatchGame],
+      ["startMatchGameInnerBtn", startMatchGame],
+      ["startMemoryGameBtn", startMemoryGame],
+      ["startMemoryGameInnerBtn", startMemoryGame]
+    ];
+    ids.forEach(([id, fn]) => {
+      const el = document.getElementById(id);
+      if(el) el.onclick = fn;
+    });
+  }
+
+
+window.startMatchGame=startMatchGame;
+window.startMemoryGame=startMemoryGame;
+function init(){
     log("init start",{cards:DATA.length});
     document.addEventListener("visibilitychange", flushStudySession);
     window.addEventListener("beforeunload", flushStudySession);
     initHolidayCursor();
+bindMinigameButtons();
     const catOpts=categories().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
     els.categoryFilter.innerHTML=catOpts; els.categoryFilter.value="All categories";
     els.phrasebookCategoryFilter.innerHTML=catOpts; els.phrasebookCategoryFilter.value="All categories";
@@ -2954,6 +3187,7 @@
     els.debugClearSearchBtn.onclick=()=>{els.debugQuestionSearch.value=""; renderDebugQuestionSearch()};
     els.clearDebugBtn.onclick=()=>{els.debugLog.textContent=""};
     bindDebugSystemTests();
+    bindMinigameButtons();
     if(els.closeChestBtn) els.closeChestBtn.onclick=closeChestModal;
 
     renderAll(); renderRandom(); renderPhrasebook(); renderDebugQuestionSearch(); newPrompt();
