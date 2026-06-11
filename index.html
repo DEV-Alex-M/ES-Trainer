@@ -1372,11 +1372,66 @@
   function jsEsc(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ")}
   function norm(s){return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[¿?¡!.,;:]/g,"").replace(/\s+/g," ").trim()}
   function idOf(x){return norm(x.de)+"|"+norm(x.es)}
+  const ARTICLE_DISPLAY = {
+    "wasser|agua": {de:"das Wasser", es:"el agua"},
+    "kaffee|cafe": {de:"der Kaffee", es:"el café"},
+    "bier|cerveza": {de:"das Bier", es:"la cerveza"},
+    "wein|vino": {de:"der Wein", es:"el vino"},
+    "der preis|el precio": {de:"der Preis", es:"el precio"},
+    "der rabatt|el descuento": {de:"der Rabatt", es:"el descuento"},
+    "die rechnung|la cuenta": {de:"die Rechnung", es:"la cuenta"},
+    "das gepack|el equipaje": {de:"das Gepäck", es:"el equipaje"}
+  };
+
+  function articleKey(item){
+    return norm(item.de)+"|"+norm(item.es);
+  }
+
+  function displayWithArticle(item, lang){
+    if(item.type !== "word") return lang === "es" ? item.es : item.de;
+    const entry = ARTICLE_DISPLAY[articleKey(item)];
+    if(entry && entry[lang]) return entry[lang];
+    return lang === "es" ? item.es : item.de;
+  }
+
   function band(level){return String(level).split(".")[0]}
   function matchLevel(level, f){const b=band(level); return f==="all" || b===f || (f==="A1-A2"&&(b==="A1"||b==="A2")) || (f==="A2-B1"&&(b==="A2"||b==="B1"))}
-  function acceptedAnswers(item, dir){const key=dir==="de-es"?"esAlt":"deAlt"; const main=dir==="de-es"?item.es:item.de; return [main,...(item[key]||[])].filter(Boolean)}
+  function acceptedAnswers(item, dir){
+    const key=dir==="de-es"?"esAlt":"deAlt";
+    const main=dir==="de-es"?displayWithArticle(item,"es"):displayWithArticle(item,"de");
+    return [main,...(item[key]||[])].filter(Boolean);
+  }
   function isAccepted(answer, item, dir){const a=norm(answer); return acceptedAnswers(item,dir).some(x=>norm(x)===a)}
   function displayAnswer(item, dir){const a=acceptedAnswers(item,dir); return a.length>1 ? a[0]+" / "+a.slice(1).join(" / ") : a[0]}
+
+  function stripArticlesForCompare(s, lang){
+    let parts = norm(s).split(" ").filter(Boolean);
+    const articles = lang === "es"
+      ? ["el","la","los","las","un","una","unos","unas"]
+      : ["der","die","das","den","dem","des","ein","eine","einen","einem","eines"];
+    while(parts.length && articles.includes(parts[0])){
+      parts.shift();
+    }
+    return parts.join(" ");
+  }
+
+  function articleOnlyAccepted(answer, item, dir){
+    const targetLang = dir === "de-es" ? "es" : "de";
+    const a = stripArticlesForCompare(answer, targetLang);
+    if(!a)return false;
+    return acceptedAnswers(item,dir).some(expected => {
+      const expectedNorm = norm(expected);
+      const answerNorm = norm(answer);
+      return expectedNorm !== answerNorm && stripArticlesForCompare(expected, targetLang) === a;
+    });
+  }
+
+  function evaluateAnswer(answer, item, dir){
+    if(isAccepted(answer,item,dir)) return {status:"correct", articleOnly:false};
+    if(articleOnlyAccepted(answer,item,dir)) return {status:"article", articleOnly:true};
+    return {status:"wrong", articleOnly:false};
+  }
+
 
   function categoryCorrect(p, category){
     let total = 0;
@@ -1531,8 +1586,8 @@
   function setPrompt(item, dir, debug=false){
     current = {
       item, dir,
-      source: dir==="de-es" ? item.de : item.es,
-      target: dir==="de-es" ? item.es : item.de,
+      source: dir==="de-es" ? displayWithArticle(item,"de") : displayWithArticle(item,"es"),
+      target: dir==="de-es" ? displayWithArticle(item,"es") : displayWithArticle(item,"de"),
       sourceLang: dir==="de-es" ? "de-DE" : "es-ES",
       targetLang: dir==="de-es" ? "es-ES" : "de-DE"
     };
@@ -1886,7 +1941,9 @@
     checked=true;
     els.answerInput.disabled=true;
     els.checkBtn.disabled=true;
-    const ok=isAccepted(ans,current.item,current.dir);
+    const answerEval=evaluateAnswer(ans,current.item,current.dir);
+    const ok=answerEval.status==="correct" || answerEval.status==="article";
+    const articleOnlyMistake=answerEval.status==="article";
     const levelBefore = levelName(progress.xp);
     progress.attempts++;
     updatePeriodCounters();
@@ -1906,7 +1963,7 @@
       progress.bestCombo=Math.max(progress.bestCombo||0,progress.combo);
       progress.dailyCorrect++; progress.weeklyCorrect++; progress.monthlyCorrect++;
       if(!revealed){
-        let earned=current.item.type==="phrase"?12:8;
+        let earned=articleOnlyMistake ? (current.item.type==="phrase"?5:3) : (current.item.type==="phrase"?12:8);
         if((progress.activeBoost?.comboRemaining||0)>0){
           earned += 8;
           progress.activeBoost.comboRemaining--;
@@ -1919,12 +1976,16 @@
           earned = Math.ceil(earned * 1.25);
         }
         progress.xp+=earned; progress.dailyXP+=earned; progress.weeklyXP+=earned; progress.monthlyXP+=earned; showFloatingXP(earned);
-        els.feedback.textContent=`Correct. +${earned} XP · ${progress.combo}x combo`;
+        els.feedback.textContent=articleOnlyMistake ? `Almost correct: article mistake only. +${earned} XP · ${progress.combo}x combo` : `Correct. +${earned} XP · ${progress.combo}x combo`;
         if(progress.combo%5===0){ playComboSound(); showToast(`🔥 ${progress.combo}x combo!`,"You are on a glitter streak."); }
       } else {
         els.feedback.textContent="Correct, but no XP because answer was revealed.";
       }
-      els.feedback.className="feedback good";
+      els.feedback.className=articleOnlyMistake?"feedback warn":"feedback good";
+      if(articleOnlyMistake){
+        els.correctAnswer.querySelector("span").textContent=displayAnswer(current.item,current.dir);
+        els.correctAnswer.classList.remove("hidden");
+      }
     } else {
       progress.errors++;
       progress.combo=0;
@@ -2144,7 +2205,7 @@
 
   function startWeeklyTest(){
     if(!weeklyTestAvailable()){showToast("Weekly test locked","Try again in about "+daysUntilTest()+" day(s).",false); return}
-    testState={questions:shuffle(DATA).slice(0,10).map(item=>{const dir=pick(["de-es","es-de"]); return {item,dir,source:dir==="de-es"?item.de:item.es,target:dir==="de-es"?item.es:item.de}}),index:0,score:0,checked:false};
+    testState={questions:shuffle(DATA).slice(0,10).map(item=>{const dir=pick(["de-es","es-de"]); return {item,dir,source:dir==="de-es"?displayWithArticle(item,"de"):displayWithArticle(item,"es"),target:dir==="de-es"?displayWithArticle(item,"es"):displayWithArticle(item,"de")}}),index:0,score:0,checked:false};
     switchTab("weekly-test");
     els.testArea.classList.remove("hidden");
     showTestQuestion();
@@ -2178,12 +2239,13 @@
     testState.checked=true;
     els.testAnswerInput.disabled=true;
     els.testCheckBtn.disabled=true;
-    if(isAccepted(answer,qn.item,qn.dir)){
+    const answerEval=evaluateAnswer(answer,qn.item,qn.dir);
+    if(answerEval.status==="correct" || answerEval.status==="article"){
       testState.score++;
       playCorrectSound();
       showCorrectFlash(); confetti();
-      els.testFeedback.textContent="Correct.";
-      els.testFeedback.className="feedback good";
+      els.testFeedback.textContent=answerEval.status==="article" ? `Almost correct: article mistake only. Correct answer: ${displayAnswer(qn.item,qn.dir)}` : "Correct.";
+      els.testFeedback.className=answerEval.status==="article" ? "feedback warn" : "feedback good";
     } else {
       els.testFeedback.textContent=`Not quite. Correct answer: ${displayAnswer(qn.item,qn.dir)}`;
       els.testFeedback.className="feedback bad";
@@ -2524,7 +2586,7 @@
 
   function renderReview(){
     const rows=DATA.map(item=>({item,card:progress.cards[idOf(item)]})).filter(x=>x.card&&(x.card.errors>0||isDue(x.card))).sort((a,b)=>new Date(a.card.dueAt)-new Date(b.card.dueAt)).slice(0,25);
-    els.reviewList.innerHTML=rows.length?rows.map(({item,card})=>`<div class="item"><strong>${esc(item.de)}</strong><span>${esc(displayAnswer(item,"de-es"))}</span><br><span class="pill ${isDue(card)?"due":""}">${isDue(card)?"Due now":"Due "+new Date(card.dueAt).toLocaleDateString()}</span><span class="pill">Box ${card.box||0}</span><span class="pill">Errors ${card.errors||0}</span></div>`).join(""):'<p class="muted">No review items yet.</p>';
+    els.reviewList.innerHTML=rows.length?rows.map(({item,card})=>`<div class="item"><strong>${esc(displayWithArticle(item,"de"))}</strong><span>${esc(displayAnswer(item,"de-es"))}</span><br><span class="pill ${isDue(card)?"due":""}">${isDue(card)?"Due now":"Due "+new Date(card.dueAt).toLocaleDateString()}</span><span class="pill">Box ${card.box||0}</span><span class="pill">Errors ${card.errors||0}</span></div>`).join(""):'<p class="muted">No review items yet.</p>';
   }
 
   function renderErrors(){
@@ -2532,7 +2594,7 @@
   }
 
   function renderRandom(){
-    els.randomList.innerHTML=shuffle(DATA).slice(0,30).map(x=>`<div class="item"><strong>${esc(x.de)}</strong><span>${esc(displayAnswer(x,"de-es"))}</span><br><span class="tag">${esc(x.cat)}</span><span class="tag">${esc(x.level)}</span><span class="tag">${esc(x.type)}</span><button class="secondary small" onclick="speak('${jsEsc(x.es)}','es-ES')">🔊 ES</button></div>`).join("");
+    els.randomList.innerHTML=shuffle(DATA).slice(0,30).map(x=>`<div class="item"><strong>${esc(displayWithArticle(x,"de"))}</strong><span>${esc(displayAnswer(x,"de-es"))}</span><br><span class="tag">${esc(x.cat)}</span><span class="tag">${esc(x.level)}</span><span class="tag">${esc(x.type)}</span><button class="secondary small" onclick="speak('${jsEsc(x.es)}','es-ES')">🔊 ES</button></div>`).join("");
   }
 
   function renderPhrasebook(){
@@ -2548,7 +2610,7 @@
       .filter(x=>(cat==="All categories"||x.cat===cat)&&matchLevel(x.level,lvl));
 
     els.phrasebook.innerHTML=rows.length
-      ? rows.map(x=>`<tr><td>${esc(x.de)}</td><td>${esc(displayAnswer(x,"de-es"))}</td><td>${esc(x.cat)}<br><span class="tag">${esc(x.level)}</span></td><td><button class="secondary small" onclick="speak('${jsEsc(x.es)}','es-ES')">🔊</button></td></tr>`).join("")
+      ? rows.map(x=>`<tr><td>${esc(displayWithArticle(x,"de"))}</td><td>${esc(displayAnswer(x,"de-es"))}</td><td>${esc(x.cat)}<br><span class="tag">${esc(x.level)}</span></td><td><button class="secondary small" onclick="speak('${jsEsc(x.es)}','es-ES')">🔊</button></td></tr>`).join("")
       : '<tr><td colspan="4" class="muted">No phrases found.</td></tr>';
   }
 
@@ -2661,7 +2723,7 @@
       if(!q)return true;
       return norm([item.de,item.es,...(item.deAlt||[]),...(item.esAlt||[]),item.cat,item.level,item.type].join(" ")).includes(q);
     }).slice(0,100);
-    els.debugQuestionResults.innerHTML=rows.length?rows.map(({item,index})=>`<div class="item"><strong>${esc(item.de)}</strong><span>${esc(displayAnswer(item,"de-es"))}</span><br><span class="tag">${esc(item.cat)}</span><span class="tag">${esc(item.level)}</span><span class="tag">${esc(item.type)}</span><div class="row" style="margin-top:8px"><button class="small" data-force="${index}">Use this question</button></div></div>`).join(""):'<p class="muted">No matching questions found.</p>';
+    els.debugQuestionResults.innerHTML=rows.length?rows.map(({item,index})=>`<div class="item"><strong>${esc(displayWithArticle(item,"de"))}</strong><span>${esc(displayAnswer(item,"de-es"))}</span><br><span class="tag">${esc(item.cat)}</span><span class="tag">${esc(item.level)}</span><span class="tag">${esc(item.type)}</span><div class="row" style="margin-top:8px"><button class="small" data-force="${index}">Use this question</button></div></div>`).join(""):'<p class="muted">No matching questions found.</p>';
     els.debugQuestionResults.querySelectorAll("[data-force]").forEach(btn=>btn.onclick=()=>forceQuestion(Number(btn.dataset.force)));
     log("debug search", {query:q,count:rows.length});
   }
