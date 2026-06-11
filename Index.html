@@ -1,0 +1,2906 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spanish Holiday Trainer v2</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#64748b;
+      --border:#e5e7eb; --input:#fff; --soft:#eff6ff; --soft-border:#bfdbfe;
+      --accent:#2563eb; --accent2:#ec4899; --gold:#f59e0b;
+      --good:#15803d; --bad:#b91c1c; --warn:#b45309;
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg:#0f172a; --card:#1e293b; --text:#f8fafc; --muted:#cbd5e1;
+      --border:#334155; --input:#111827; --soft:#172554; --soft-border:#2563eb;
+      --accent:#60a5fa; --accent2:#f472b6; --gold:#fbbf24;
+      --good:#86efac; --bad:#fca5a5; --warn:#fbbf24;
+      --shadow:0 10px 30px rgba(0,0,0,.28);
+    }
+    @media (prefers-color-scheme: dark) {
+      html[data-theme="auto"] {
+        color-scheme: dark;
+        --bg:#0f172a; --card:#1e293b; --text:#f8fafc; --muted:#cbd5e1;
+        --border:#334155; --input:#111827; --soft:#172554; --soft-border:#2563eb;
+        --accent:#60a5fa; --accent2:#f472b6; --gold:#fbbf24;
+        --good:#86efac; --bad:#fca5a5; --warn:#fbbf24;
+        --shadow:0 10px 30px rgba(0,0,0,.28);
+      }
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+    header{padding:24px 18px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(236,72,153,.15),rgba(245,158,11,.16),rgba(37,99,235,.13))}
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3.4rem);background:linear-gradient(90deg,var(--accent2),var(--gold),var(--accent),var(--accent2));background-size:260%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:grad 4s linear infinite}
+    @keyframes grad{from{background-position:0}to{background-position:260%}}
+    header p{margin:0;color:var(--muted)}
+    .topbar{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .hero-art{margin:18px auto 0;width:min(780px,100%);min-height:128px;border-radius:24px;border:1px solid var(--soft-border);position:relative;overflow:hidden;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.8),transparent 13%),radial-gradient(circle at 84% 18%,rgba(255,230,120,.8),transparent 15%),linear-gradient(135deg,rgba(236,72,153,.35),rgba(245,158,11,.32),rgba(59,130,246,.36));box-shadow:var(--shadow)}
+    .hero-art:before{content:"✈️  🌴  🏖️  🇪🇸  🧳  ✨";position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(2rem,6vw,4rem);letter-spacing:.25rem;animation:floaty 4s ease-in-out infinite}
+    @keyframes floaty{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
+    main{width:min(1220px,calc(100% - 28px));margin:20px auto 50px;display:grid;gap:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:10;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--border)}
+    .tab-btn{background:var(--input);color:var(--text);border-color:var(--border)}
+    .tab-btn.active{background:linear-gradient(135deg,var(--accent2),var(--gold),var(--accent));color:#fff;border-color:transparent}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:20px}.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    @media(max-width:900px){.grid,.dashboard-grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px}
+    .dashboard-card{background:radial-gradient(circle at 20% 0%,rgba(236,72,153,.16),transparent 28%),radial-gradient(circle at 90% 10%,rgba(245,158,11,.15),transparent 30%),var(--card)}
+    .toolbar,.row,.stats-grid{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.toolbar{justify-content:space-between}
+    button,select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font:inherit;background:var(--input);color:var(--text)}
+    button{cursor:default;background:var(--accent);border-color:var(--accent);color:#fff;font-weight:800}
+    button.secondary{background:var(--input);color:var(--text);border-color:var(--border)}
+    button.danger{background:#b91c1c;border-color:#b91c1c;color:white}button.small{padding:6px 9px;font-size:.9rem}
+    button:disabled,input:disabled{opacity:.6;cursor:not-allowed}
+    input[type=text]{width:100%;min-height:46px}.muted{color:var(--muted)}
+    .prompt{border:1px dashed var(--soft-border);background:var(--soft);padding:18px;border-radius:16px;margin:12px 0}
+    .prompt-text{font-size:1.55rem;font-weight:900;margin:8px 0;min-height:2.2rem}.answer{font-weight:900;color:var(--accent)}
+    .feedback.good{color:var(--good);font-weight:900}.feedback.bad{color:var(--bad);font-weight:900}.feedback.warn{color:var(--warn);font-weight:900}
+    .hidden{display:none}.stat{flex:1 1 118px;border:1px solid var(--border);border-radius:14px;padding:12px;background:color-mix(in srgb,var(--card),var(--bg) 34%)}.stat b{display:block;font-size:1.35rem}
+    .progressbar{height:10px;background:var(--border);border-radius:99px;overflow:hidden}.progressbar span{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent2),var(--gold),var(--accent))}
+    .level-ring{width:140px;height:140px;margin:4px auto 12px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--ring,0%),var(--border) 0);box-shadow:0 0 34px rgba(96,165,250,.35);position:relative}.level-ring:after{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--card);border:1px solid var(--border)}.level-ring-inner{z-index:1;text-align:center;font-weight:900}.level-ring-inner b{display:block;font-size:1.35rem}
+    .big-xp{font-size:clamp(2.5rem,8vw,5rem);font-weight:1000;line-height:.95;background:linear-gradient(90deg,var(--accent2),var(--gold),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .rank-title{font-size:1.25rem;font-weight:900}.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+    .list{display:grid;gap:8px;max-height:520px;overflow:auto}.item{border:1px solid var(--border);border-radius:14px;padding:10px 12px;background:var(--input)}.item strong{display:block}
+    .tag,.pill{display:inline-block;margin:6px 4px 0 0;padding:2px 8px;border-radius:999px;background:rgba(99,102,241,.18);font-size:.78rem;font-weight:800}.due{background:rgba(185,28,28,.14);color:var(--bad)}.mastered{background:rgba(21,128,61,.14);color:var(--good)}
+    table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{color:var(--muted);font-size:.9rem}
+    .badge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}.badge{border:1px solid var(--border);border-radius:16px;padding:10px;text-align:center;background:color-mix(in srgb,var(--card),var(--soft) 35%);opacity:.45;filter:grayscale(.75)}.badge.unlocked{opacity:1;filter:none;border-color:var(--soft-border);box-shadow:0 0 18px rgba(245,158,11,.18)}.badge .emoji{font-size:1.85rem;display:block}.badge strong{display:block;font-size:.9rem}.badge small{color:var(--muted)}
+    .quest{border:1px solid var(--border);border-radius:16px;padding:10px;margin-bottom:8px;background:var(--input)}.quest.complete{border-color:var(--good)}
+    .quest-group{margin-top:14px;padding-top:10px;border-top:1px solid var(--border)}.quest-group:first-child{margin-top:0;padding-top:0;border-top:0}.quest-group h4{margin:0 0 8px}
+    .test-box{border:2px solid color-mix(in srgb,var(--gold),var(--border) 35%);background:radial-gradient(circle at 10% 0%,rgba(245,158,11,.18),transparent 30%),var(--input);border-radius:18px;padding:14px;margin-top:14px}.test-box.locked{opacity:.72;border-style:dashed}
+    .reward-toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);z-index:9999;min-width:min(420px,calc(100% - 30px));background:linear-gradient(135deg,#ec4899,#f59e0b,#3b82f6);color:white;border-radius:24px;padding:18px 20px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35);animation:toast 2200ms ease forwards;border:2px solid rgba(255,255,255,.45)}.reward-toast b{display:block;font-size:1.45rem}.reward-toast small{font-weight:800}@keyframes toast{0%{opacity:0;transform:translateX(-50%) translateY(-18px) scale(.75)}12%{opacity:1;transform:translateX(-50%) scale(1.05)}82%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-15px) scale(.95)}}
+    .confetti{pointer-events:none;position:fixed;inset:0;overflow:hidden;z-index:9998}.confetti span{position:absolute;top:-20px;font-size:1.3rem;animation:fall 4000ms ease-out forwards}@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+    .correct-flash{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.85);z-index:9997;padding:18px 28px;border-radius:999px;background:linear-gradient(135deg,#22c55e,#84cc16,#facc15);color:white;font-weight:1000;font-size:clamp(1.6rem,5vw,3rem);text-shadow:0 3px 12px rgba(0,0,0,.28);box-shadow:0 18px 60px rgba(34,197,94,.38);pointer-events:none;animation:correctFlash 1100ms ease-out forwards;border:2px solid rgba(255,255,255,.5)}
+    @keyframes correctFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.65) rotate(-4deg)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(2deg)}72%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-72%) scale(.92)}}
+    pre{white-space:pre-wrap;overflow:auto;max-height:280px;background:var(--input);border:1px solid var(--border);border-radius:12px;padding:12px}
+    footer.app-footer{margin-top:40px;padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--card),var(--bg) 20%))}
+    .footer-stats{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:.9rem}
+  
+    .level-up-flash{
+      position:fixed;
+      inset:0;
+      z-index:9996;
+      pointer-events:none;
+      background:radial-gradient(circle,rgba(255,255,255,.9),rgba(245,158,11,.45),rgba(236,72,153,.22),transparent 70%);
+      animation:levelFlash 3600ms ease-out forwards;
+    }
+    @keyframes levelFlash{
+      0%{opacity:0;transform:scale(.88)}
+      14%{opacity:1;transform:scale(1)}
+      78%{opacity:.85;transform:scale(1.08)}
+      100%{opacity:0;transform:scale(1.22)}
+    }
+
+    .level-up-banner{
+      position:fixed;
+      left:50%;
+      top:42%;
+      transform:translate(-50%,-50%) scale(.72) rotate(-3deg);
+      z-index:10003;
+      pointer-events:none;
+      width:min(620px,calc(100% - 28px));
+      padding:26px 24px;
+      border-radius:30px;
+      text-align:center;
+      color:white;
+      background:linear-gradient(135deg,#ec4899,#f59e0b,#3b82f6,#8b5cf6);
+      background-size:260% 260%;
+      border:3px solid rgba(255,255,255,.68);
+      box-shadow:0 28px 90px rgba(0,0,0,.38),0 0 45px rgba(245,158,11,.65);
+      animation:levelBannerPop 4200ms cubic-bezier(.16,1,.3,1) forwards, levelBannerGradient 1400ms linear infinite;
+      overflow:hidden;
+    }
+    .level-up-banner:before{
+      content:"";
+      position:absolute;
+      inset:-50%;
+      background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.72),transparent 65%);
+      transform:translateX(-45%) rotate(12deg);
+      animation:levelBannerShine 1100ms ease-out 260ms forwards;
+    }
+    .level-up-banner .level-up-big{
+      position:relative;
+      z-index:1;
+      display:block;
+      font-size:clamp(2.7rem,10vw,6rem);
+      font-weight:1000;
+      line-height:.9;
+      letter-spacing:.04em;
+      text-shadow:0 5px 18px rgba(0,0,0,.35);
+      animation:levelTextPulse 850ms ease-in-out 4;
+    }
+    .level-up-banner .level-up-sub,
+    .level-up-banner .level-up-title{
+      position:relative;
+      z-index:1;
+      display:block;
+      margin-top:8px;
+      font-weight:1000;
+      text-shadow:0 3px 12px rgba(0,0,0,.32);
+    }
+    .level-up-banner .level-up-sub{font-size:clamp(1.1rem,4vw,1.8rem)}
+    .level-up-banner .level-up-title{font-size:clamp(1rem,3vw,1.35rem);opacity:.95}
+    @keyframes levelBannerPop{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.52) rotate(-8deg)}
+      12%{opacity:1;transform:translate(-50%,-50%) scale(1.1) rotate(3deg)}
+      23%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+      84%{opacity:1;transform:translate(-50%,-54%) scale(1)}
+      100%{opacity:0;transform:translate(-50%,-68%) scale(.92)}
+    }
+    @keyframes levelBannerGradient{from{background-position:0 50%}to{background-position:260% 50%}}
+    @keyframes levelBannerShine{to{transform:translateX(70%) rotate(12deg)}}
+    @keyframes levelTextPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+    .level-up-fireworks{
+      pointer-events:none;
+      position:fixed;
+      inset:0;
+      overflow:hidden;
+      z-index:10002;
+    }
+    .level-up-fireworks span{
+      position:absolute;
+      left:50%;
+      top:48%;
+      font-size:1.55rem;
+      animation:levelFirework 3600ms ease-out forwards;
+      filter:drop-shadow(0 4px 8px rgba(0,0,0,.28));
+    }
+    @keyframes levelFirework{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(0deg)}
+      12%{opacity:1}
+      100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.35) rotate(var(--r))}
+    }
+
+    body.level-screen-shake{animation:levelScreenShake 900ms cubic-bezier(.36,.07,.19,.97) both}
+    @keyframes levelScreenShake{
+      10%,90%{transform:translate3d(-1px,0,0)}
+      20%,80%{transform:translate3d(2px,0,0)}
+      30%,50%,70%{transform:translate3d(-5px,0,0)}
+      40%,60%{transform:translate3d(5px,0,0)}
+    }
+
+    .floating-xp{
+      position:fixed;
+      z-index:9997;
+      pointer-events:none;
+      left:50%;
+      top:56%;
+      transform:translate(-50%,-50%);
+      padding:10px 18px;
+      border-radius:999px;
+      background:linear-gradient(135deg,var(--gold),var(--accent2));
+      color:white;
+      font-weight:1000;
+      font-size:clamp(1.2rem,4vw,2.1rem);
+      text-shadow:0 2px 8px rgba(0,0,0,.25);
+      box-shadow:0 16px 48px rgba(245,158,11,.35);
+      animation:floatXP 1050ms ease-out forwards;
+      border:2px solid rgba(255,255,255,.5);
+    }
+    @keyframes floatXP{
+      0%{opacity:0;transform:translate(-50%,-35%) scale(.7)}
+      15%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+      100%{opacity:0;transform:translate(-50%,-125%) scale(.95)}
+    }
+
+    .gold-burst{
+      pointer-events:none;
+      position:fixed;
+      inset:0;
+      overflow:hidden;
+      z-index:9998;
+    }
+    .gold-burst span{
+      position:absolute;
+      left:50%;
+      top:45%;
+      font-size:1.6rem;
+      animation:goldBurst 2500ms ease-out forwards;
+      filter:drop-shadow(0 4px 8px rgba(0,0,0,.25));
+    }
+    @keyframes goldBurst{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}
+      15%{opacity:1}
+      100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.3) rotate(var(--r))}
+    }
+
+    .rainbow-pulse{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:9995;
+      background:conic-gradient(from 0deg,rgba(236,72,153,.35),rgba(245,158,11,.35),rgba(34,197,94,.32),rgba(59,130,246,.35),rgba(168,85,247,.35),rgba(236,72,153,.35));
+      animation:rainbowPulse 1800ms ease-out forwards;
+      mix-blend-mode:screen;
+    }
+    @keyframes rainbowPulse{
+      0%{opacity:0;transform:scale(.85) rotate(0deg)}
+      20%{opacity:.95}
+      100%{opacity:0;transform:scale(1.25) rotate(160deg)}
+    }
+
+
+    .chest-panel{
+      border:2px solid color-mix(in srgb,var(--gold),var(--border) 30%);
+      background:radial-gradient(circle at 15% 0%,rgba(245,158,11,.22),transparent 32%),var(--input);
+      border-radius:18px;
+      padding:14px;
+      margin-top:14px;
+    }
+    .inventory-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .inventory-item{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+      background:color-mix(in srgb,var(--card),var(--soft) 30%);
+      text-align:center;
+      font-weight:900;
+    }
+    .inventory-item span{
+      display:block;
+      font-size:1.7rem;
+    }
+    .chest-modal{
+      position:fixed;
+      inset:0;
+      z-index:10000;
+      display:grid;
+      place-items:center;
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(5px);
+      animation:modalFade 250ms ease-out forwards;
+    }
+    .chest-modal.hidden{display:none}
+    @keyframes modalFade{from{opacity:0}to{opacity:1}}
+    .chest-card{
+      width:min(540px,calc(100% - 28px));
+      background:radial-gradient(circle at 20% 0%,rgba(245,158,11,.25),transparent 32%),radial-gradient(circle at 90% 10%,rgba(236,72,153,.18),transparent 35%),var(--card);
+      border:2px solid var(--gold);
+      border-radius:26px;
+      box-shadow:0 30px 90px rgba(0,0,0,.45);
+      padding:24px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .chest-card.jackpot{
+      animation:jackpotShake 650ms ease-in-out;
+      border-color:#facc15;
+      box-shadow:0 0 40px rgba(250,204,21,.75),0 30px 90px rgba(0,0,0,.45);
+    }
+    @keyframes jackpotShake{
+      0%,100%{transform:translateX(0)}
+      15%{transform:translateX(-8px) rotate(-1deg)}
+      30%{transform:translateX(8px) rotate(1deg)}
+      45%{transform:translateX(-7px) rotate(-1deg)}
+      60%{transform:translateX(7px) rotate(1deg)}
+      75%{transform:translateX(-3px)}
+    }
+    .chest-title{
+      margin:0 0 6px;
+      font-size:clamp(1.6rem,5vw,2.6rem);
+      background:linear-gradient(90deg,var(--gold),var(--accent2),var(--accent));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .treasure-chest{
+      width:190px;
+      height:150px;
+      margin:22px auto;
+      position:relative;
+      cursor:pointer;
+      filter:drop-shadow(0 18px 26px rgba(0,0,0,.28));
+      animation:chestBounce 1.2s ease-in-out infinite;
+    }
+    @keyframes chestBounce{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-8px)}
+    }
+    .treasure-chest .lid{
+      position:absolute;
+      left:20px;
+      top:18px;
+      width:150px;
+      height:64px;
+      background:linear-gradient(#92400e,#b45309,#f59e0b);
+      border:4px solid #78350f;
+      border-radius:22px 22px 8px 8px;
+      transform-origin:50% 100%;
+      transition:transform 650ms cubic-bezier(.2,1.4,.4,1);
+      z-index:2;
+    }
+    .treasure-chest .body{
+      position:absolute;
+      left:12px;
+      bottom:10px;
+      width:166px;
+      height:88px;
+      background:linear-gradient(#b45309,#92400e);
+      border:4px solid #78350f;
+      border-radius:12px 12px 20px 20px;
+      z-index:1;
+    }
+    .treasure-chest .band{
+      position:absolute;
+      left:78px;
+      top:16px;
+      width:34px;
+      height:120px;
+      background:linear-gradient(#fde68a,#f59e0b);
+      border:3px solid #92400e;
+      z-index:3;
+      border-radius:8px;
+    }
+    .treasure-chest .lock{
+      position:absolute;
+      left:74px;
+      top:77px;
+      width:42px;
+      height:38px;
+      background:linear-gradient(#fef3c7,#f59e0b);
+      border:4px solid #92400e;
+      border-radius:8px;
+      z-index:4;
+    }
+    .treasure-chest.opened{animation:none}
+    .treasure-chest.opened .lid{transform:rotateX(65deg) translateY(-28px)}
+    .chest-glow{
+      position:absolute;
+      left:50%;
+      top:47%;
+      width:280px;
+      height:190px;
+      transform:translate(-50%,-50%) scale(.4);
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(255,255,255,.95),rgba(250,204,21,.75),rgba(236,72,153,.28),transparent 70%);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity 500ms ease, transform 700ms ease;
+      z-index:0;
+    }
+    .chest-glow.visible{
+      opacity:1;
+      transform:translate(-50%,-50%) scale(1);
+    }
+    .reward-item{
+      display:none;
+      border:1px solid var(--soft-border);
+      border-radius:18px;
+      padding:14px;
+      margin-top:12px;
+      background:color-mix(in srgb,var(--card),var(--soft) 35%);
+      animation:rewardReveal 600ms ease-out forwards;
+    }
+    .reward-item.visible{display:block}
+    @keyframes rewardReveal{
+      from{opacity:0;transform:translateY(16px) scale(.92)}
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+    .reward-item .emoji{font-size:2.8rem;display:block}
+    .coin-burst{
+      pointer-events:none;
+      position:fixed;
+      inset:0;
+      overflow:hidden;
+      z-index:10001;
+    }
+    .coin-burst span{
+      position:absolute;
+      left:50%;
+      top:45%;
+      font-size:1.7rem;
+      animation:coinBurst 1100ms ease-out forwards;
+      filter:drop-shadow(0 4px 8px rgba(0,0,0,.25));
+    }
+    @keyframes coinBurst{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}
+      15%{opacity:1}
+      100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.35) rotate(var(--r))}
+    }
+
+
+    .inventory-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:8px;
+    }
+    .active-effect{
+      border:1px solid var(--soft-border);
+      border-radius:14px;
+      padding:10px;
+      background:color-mix(in srgb,var(--card),var(--soft) 40%);
+      margin-top:10px;
+      font-weight:800;
+    }
+    .calendar-controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:6px;
+    }
+    .calendar-day-name{
+      text-align:center;
+      font-size:.82rem;
+      font-weight:900;
+      color:var(--muted);
+      padding:6px;
+    }
+    .calendar-day{
+      min-height:72px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:6px;
+      background:var(--input);
+      position:relative;
+    }
+    .calendar-day.empty{
+      opacity:.25;
+      background:transparent;
+    }
+    .calendar-day .date{
+      font-weight:900;
+      font-size:.9rem;
+    }
+    .calendar-day .mark{
+      display:block;
+      margin-top:5px;
+      font-size:.78rem;
+      font-weight:800;
+    }
+    .calendar-day.practiced{
+      border-color:color-mix(in srgb,var(--good),var(--border) 30%);
+      background:color-mix(in srgb,var(--card),rgba(21,128,61,.16) 35%);
+    }
+    .calendar-day.missed{
+      border-color:color-mix(in srgb,var(--bad),var(--border) 30%);
+      background:color-mix(in srgb,var(--card),rgba(185,28,28,.16) 35%);
+    }
+    .calendar-day.protected{
+      border-color:color-mix(in srgb,var(--gold),var(--border) 25%);
+      background:color-mix(in srgb,var(--card),rgba(245,158,11,.18) 40%);
+    }
+    .calendar-legend{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    .rainbow-shop{
+      margin-top:12px;
+      border:1px solid var(--soft-border);
+      border-radius:16px;
+      padding:12px;
+      background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(245,158,11,.10),rgba(59,130,246,.12)),var(--input);
+    }
+    .rainbow-shop h4{
+      margin:0 0 8px;
+    }
+    .rainbow-shop-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+    .shop-buy-btn{
+      width:100%;
+      min-height:54px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+    }
+    .shop-buy-btn small{
+      font-weight:700;
+      opacity:.9;
+    }
+
+
+    .debug-test-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .debug-test-btn{
+      min-height:56px;
+      text-align:left;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:3px;
+    }
+    .debug-test-btn small{
+      display:block;
+      opacity:.82;
+      font-weight:700;
+    }
+
+
+    /* Holiday themed custom cursor */
+    body, button, select, input, textarea, a, .tab-btn, .treasure-chest {
+      cursor: none;
+    }
+
+    .holiday-cursor,
+    .holiday-cursor-dot {
+      position: fixed;
+      pointer-events: none;
+      z-index: 20000;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+    }
+
+    .holiday-cursor {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.25));
+      transition: transform 90ms ease, opacity 160ms ease;
+    }
+
+    .holiday-cursor::before {
+      content: "🌴";
+    }
+
+    .holiday-cursor-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 14px rgba(245,158,11,.8);
+      transition: transform 80ms ease, opacity 160ms ease;
+    }
+
+    .holiday-cursor.clickable {
+      transform: translate(-50%, -50%) scale(1.2) rotate(-10deg);
+    }
+
+    .holiday-cursor.clickable::before {
+      content: "🏖️";
+    }
+
+    .holiday-cursor.typing::before {
+      content: "✏️";
+    }
+
+    .holiday-cursor.hidden,
+    .holiday-cursor-dot.hidden {
+      opacity: 0;
+    }
+
+    .holiday-cursor-trail {
+      position: fixed;
+      pointer-events: none;
+      z-index: 19999;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      animation: cursorTrail 650ms ease-out forwards;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,.2));
+    }
+
+    @keyframes cursorTrail {
+      from { opacity: .95; transform: translate(-50%, -50%) scale(.8) rotate(0deg); }
+      to { opacity: 0; transform: translate(-50%, -100%) scale(1.25) rotate(80deg); }
+    }
+
+    @media (pointer: coarse) {
+      body, button, select, input, textarea, a, .tab-btn, .treasure-chest {
+        cursor: auto;
+      }
+      .holiday-cursor,
+      .holiday-cursor-dot,
+      .holiday-cursor-trail {
+        display: none;
+      }
+    }
+
+
+
+    /* Stronger hover/focus visibility improvements */
+    button,
+    select,
+    input,
+    .item,
+    .badge,
+    .inventory-item,
+    .quest,
+    .calendar-day {
+      transition:
+        transform 140ms ease,
+        box-shadow 140ms ease,
+        border-color 140ms ease,
+        background 140ms ease,
+        filter 140ms ease;
+    }
+
+    button:hover:not(:disabled),
+    .tab-btn:hover:not(:disabled),
+    button:focus-visible,
+    .tab-btn:focus-visible {
+      transform: translateY(-2px) scale(1.025);
+      box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--gold), transparent 64%),
+        0 12px 28px rgba(245,158,11,.28);
+      filter: brightness(1.08);
+      outline: none;
+    }
+
+    button.secondary:hover:not(:disabled),
+    button.secondary:focus-visible {
+      border-color: var(--gold);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(245,158,11,.20), transparent 35%),
+        color-mix(in srgb, var(--input), var(--soft) 35%);
+      color: var(--text);
+    }
+
+    .tab-btn {
+      position: relative;
+    }
+
+    .tab-btn:hover:not(.active)::after,
+    .tab-btn:focus-visible:not(.active)::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 4px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent2), var(--gold), var(--accent));
+    }
+
+    .tab-btn.active {
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--gold), transparent 58%),
+        0 12px 30px rgba(236,72,153,.22);
+    }
+
+    input:hover,
+    select:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold), transparent 76%);
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--accent), transparent 70%),
+        0 8px 22px rgba(37,99,235,.14);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(59,130,246,.12), transparent 34%),
+        var(--input);
+    }
+
+    .item:hover,
+    .inventory-item:hover,
+    .quest:hover,
+    .calendar-day:hover {
+      transform: translateY(-2px);
+      border-color: var(--gold);
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--gold), transparent 76%),
+        0 12px 26px rgba(15,23,42,.10);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(245,158,11,.16), transparent 34%),
+        var(--input);
+    }
+
+    .badge:hover {
+      transform: translateY(-3px) scale(1.02);
+      border-color: var(--gold);
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--gold), transparent 74%),
+        0 14px 30px rgba(245,158,11,.20);
+    }
+
+    .badge.unlocked:hover {
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--gold), transparent 64%),
+        0 0 30px rgba(245,158,11,.34),
+        0 16px 34px rgba(15,23,42,.12);
+    }
+
+    .inventory-actions button {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .inventory-actions button:hover:not(:disabled)::before {
+      content: "✨";
+      position: absolute;
+      right: 6px;
+      top: 2px;
+      font-size: .9rem;
+      animation: miniSparkle 750ms ease-in-out infinite;
+    }
+
+    @keyframes miniSparkle {
+      0%,100% { opacity: .35; transform: scale(.85) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(18deg); }
+    }
+
+    .prompt:hover {
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--accent), transparent 78%),
+        0 12px 28px rgba(37,99,235,.10);
+    }
+
+    .holiday-cursor {
+      background: rgba(255,255,255,.74);
+      border: 2px solid color-mix(in srgb, var(--gold), white 18%);
+      box-shadow:
+        0 0 0 3px rgba(245,158,11,.16),
+        0 8px 22px rgba(0,0,0,.22);
+      backdrop-filter: blur(2px);
+    }
+
+    html[data-theme="dark"] .holiday-cursor,
+    html[data-theme="auto"] .holiday-cursor {
+      background: rgba(15,23,42,.72);
+    }
+
+    .holiday-cursor.clickable {
+      box-shadow:
+        0 0 0 5px rgba(245,158,11,.24),
+        0 0 28px rgba(245,158,11,.45),
+        0 8px 22px rgba(0,0,0,.25);
+    }
+
+    .holiday-cursor-dot {
+      background: #fff7ad;
+      border: 1px solid var(--gold);
+      box-shadow:
+        0 0 0 3px rgba(245,158,11,.18),
+        0 0 16px rgba(245,158,11,.9);
+    }
+
+    button:disabled {
+      filter: grayscale(.35);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      button,
+      select,
+      input,
+      .item,
+      .badge,
+      .inventory-item,
+      .quest,
+      .calendar-day {
+        transition: none;
+      }
+      button:hover:not(:disabled),
+      .tab-btn:hover:not(:disabled),
+      .item:hover,
+      .inventory-item:hover,
+      .quest:hover,
+      .calendar-day:hover,
+      .badge:hover {
+        transform: none;
+      }
+    }
+
+
+
+    .calendar-day .study-time{
+      display:block;
+      margin-top:5px;
+      font-size:.78rem;
+      font-weight:900;
+      color:var(--accent);
+    }
+    .calendar-day.practiced .study-time{
+      color:var(--good);
+    }
+    .calendar-study-summary{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .calendar-study-summary span{
+      display:inline-block;
+      padding:4px 9px;
+      border-radius:999px;
+      background:color-mix(in srgb,var(--soft),var(--card) 35%);
+      font-weight:900;
+    }
+
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <button id="soundToggleBtn" class="secondary small" type="button">🔊 Sound On</button>
+    <label class="muted" for="themeSelect">Theme</label>
+    <select id="themeSelect"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select>
+  </div>
+  <h1>Spanish Holiday Trainer v2</h1>
+  <p>German ↔ Spanish travel practice with A1–B1 difficulty, rewards, XP, streaks, speech, tests, and progress backup.</p>
+  <div class="hero-art"></div>
+</header>
+
+<audio id="sfxCorrect" preload="auto" src="audio/correct.mp3"></audio>
+<audio id="sfxCombo" preload="auto" src="audio/combo.mp3"></audio>
+<audio id="sfxBadge" preload="auto" src="audio/badge.mp3"></audio>
+<audio id="sfxQuest" preload="auto" src="audio/quest.mp3"></audio>
+<audio id="sfxWeeklyQuest" preload="auto" src="audio/weeklyquest.mp3"></audio>
+<audio id="sfxVictory" preload="auto" src="audio/victory.mp3"></audio>
+<audio id="sfxLevelUp" preload="auto" src="audio/level_up.mp3"></audio>
+<audio id="sfxWrong" preload="auto" src="audio/wrong.mp3"></audio>
+<audio id="sfxChestBuild" preload="auto" src="audio/chest_build.mp3"></audio>
+<audio id="sfxChestOpen" preload="auto" src="audio/chest_open.mp3"></audio>
+<audio id="sfxCoinSpend" preload="auto" src="audio/coin_spend.mp3"></audio>
+
+
+
+<main>
+  <nav class="tabs" aria-label="Trainer tabs">
+    <button class="tab-btn active" data-tab="dashboard">🏆 Dashboard</button>
+    <button class="tab-btn" data-tab="calendar">📅 Calendar</button>
+    <button class="tab-btn" data-tab="practice">✍️ Practice</button>
+    <button class="tab-btn" data-tab="weekly-test">🧪 Weekly Test</button>
+    <button class="tab-btn" data-tab="phrasebook">📘 Phrasebook</button>
+    <button class="tab-btn" data-tab="review">🔁 Review</button>
+    <button class="tab-btn" data-tab="random">🎲 Random List</button>
+    <button class="tab-btn" data-tab="backup">💾 Backup</button>
+    <button class="tab-btn" data-tab="debug">🛠 Debug</button>
+  </nav>
+
+  <section id="tab-dashboard" class="tab-panel active">
+    <div class="dashboard-grid">
+      <section class="card dashboard-card">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0">Reward Dashboard</h2>
+            <p class="muted" style="margin:.25rem 0 0">Your title, XP, level, streak, quests, and badges.</p>
+          </div>
+          <button class="secondary" data-go-tab="practice">Start practice</button>
+        </div>
+        <div class="row" style="align-items:center;gap:24px;margin-top:14px">
+          <div class="level-ring" id="levelRing"><div class="level-ring-inner"><b id="ringLevel">Beginner</b><span id="ringPct">0%</span></div></div>
+          <div style="flex:1">
+            <div class="muted">Current XP</div>
+            <div class="big-xp" id="dashboardXP">0</div>
+            <div class="rank-title">Title: <span id="dashboardTitle">Beginner Traveler</span></div>
+            <div class="progressbar" style="margin-top:12px"><span id="levelProgress"></span></div>
+            <p id="levelText" class="muted"></p>
+          </div>
+        </div>
+        <div class="hero-stats" style="margin-top:16px">
+          <div class="stat"><span>Level</span><b id="userLevel">Beginner</b></div>
+          <div class="stat"><span>Streak</span><b id="streak">0</b></div>
+          <div class="stat"><span>Best Combo</span><b id="dashboardCombo">0</b></div>
+          <div class="stat"><span>Due Review</span><b id="dueCount">0</b></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 style="margin-top:0">Quests</h2>
+        <div id="questList"></div>
+        <div id="weeklyTestBox" class="test-box"></div>
+        <div id="chestPanel" class="chest-panel"></div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:20px">
+      <div class="toolbar">
+        <h2 style="margin:0">Reward badges <span id="badgeCountText" class="muted"></span></h2>
+        <button class="secondary" data-go-tab="practice">Earn more XP</button>
+      </div>
+      <div id="badgeGrid" class="badge-grid"></div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <h2 style="margin-top:0">Stats</h2>
+      <div class="stats-grid">
+        <div class="stat"><span>Attempts</span><b id="attempts">0</b></div>
+        <div class="stat"><span>Correct</span><b id="correct">0</b></div>
+        <div class="stat"><span>Errors</span><b id="errors">0</b></div>
+        <div class="stat"><span>Accuracy</span><b id="accuracy">0%</b></div>
+        <div class="stat"><span>XP</span><b id="xp">0</b></div>
+      </div>
+    </section>
+  </section>
+
+  <section id="tab-calendar" class="tab-panel">
+    <section class="card">
+      <div class="calendar-controls">
+        <div>
+          <h2 style="margin:0">Practice Calendar</h2>
+          <p class="muted" style="margin:.25rem 0 0">Shows practiced days, missed days, and streak shield protection.</p>
+        </div>
+        <div class="row">
+          <button id="prevMonthBtn" class="secondary">← Previous</button>
+          <strong id="calendarTitle"></strong>
+          <button id="nextMonthBtn" class="secondary">Next →</button>
+        </div>
+      </div>
+      <div id="calendarStudySummary" class="active-effect" style="margin-bottom:12px"></div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+      <div class="calendar-legend">
+        <span>✅ Practiced</span>
+        <span>❌ Missed</span>
+        <span>🛡️ Shield protected</span>
+        <span>⬜ Future/unknown</span>
+      </div>
+    </section>
+  </section>
+
+  <section id="tab-practice" class="tab-panel">
+    <section class="card">
+      <div class="toolbar">
+        <div><h2 style="margin:0">Practice</h2><span class="muted">Type your answer. Accents and punctuation are optional.</span></div>
+        <div class="row">
+          <select id="levelFilter">
+            <option value="all">All levels: A1 → B1</option><option value="A1">A1 only</option><option value="A2">A2 only</option><option value="B1">B1 only</option><option value="A1-A2">A1 → A2</option><option value="A2-B1">A2 → B1</option>
+          </select>
+          <select id="mode"><option value="mixed">Mixed: DE ↔ ES</option><option value="de-es">German → Spanish</option><option value="es-de">Spanish → German</option></select>
+          <select id="typeFilter"><option value="all">Words + phrases</option><option value="word">Words only</option><option value="phrase">Phrases only</option></select>
+          <select id="categoryFilter"></select>
+        </div>
+      </div>
+      <div class="prompt">
+        <small id="promptMeta"></small>
+        <div class="row"><div id="promptText" class="prompt-text" style="flex:1"></div><button id="speakPromptBtn" class="secondary small">🔊 Prompt</button></div>
+        <small id="promptHint"></small>
+      </div>
+      <input id="answerInput" type="text" autocomplete="off" placeholder="Write the translation here..." />
+      <div class="row" style="margin-top:12px">
+        <button id="checkBtn">Check answer</button><button id="showBtn" class="secondary">Show answer</button><button id="speakAnswerBtn" class="secondary">🔊 Answer</button><button id="nextBtn" class="secondary">Next</button>
+      </div>
+      <p id="feedback" class="feedback"></p>
+      <p id="correctAnswer" class="hidden">Correct answer: <span class="answer"></span></p>
+    </section>
+  </section>
+
+  <section id="tab-weekly-test" class="tab-panel">
+    <section class="card">
+      <div class="toolbar">
+        <div><h2 style="margin:0">Weekly Bonus Test</h2><span class="muted">Available once every 7 days. Complete 10 questions for bonus XP.</span></div>
+        <button id="exitTestBtn" class="secondary">Exit test</button>
+      </div>
+      <div id="testStatus" class="test-box"></div>
+      <div id="testArea" class="hidden">
+        <div class="prompt">
+          <small id="testMeta"></small>
+          <div id="testPromptText" class="prompt-text"></div>
+          <small id="testHint"></small>
+        </div>
+        <input id="testAnswerInput" type="text" autocomplete="off" placeholder="Write the translation here..." />
+        <div class="row" style="margin-top:12px">
+          <button id="testCheckBtn">Check test answer</button>
+          <button id="testNextBtn" class="secondary">Next test question</button>
+        </div>
+        <p id="testFeedback" class="feedback"></p>
+      </div>
+    </section>
+  </section>
+
+  <section id="tab-phrasebook" class="tab-panel">
+    <section class="card">
+      <div class="toolbar"><h2 style="margin:0">Mini phrasebook</h2><select id="phrasebookCategoryFilter"></select><select id="phrasebookLevelFilter"><option value="all">All levels</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="A1-A2">A1 → A2</option><option value="A2-B1">A2 → B1</option></select></div>
+      <table><thead><tr><th>German</th><th>Spanish</th><th>Cat.</th><th>Audio</th></tr></thead><tbody id="phrasebook"></tbody></table>
+    </section>
+  </section>
+
+  <section id="tab-review" class="tab-panel">
+    <section class="card"><div class="toolbar"><h2 style="margin:0">Spaced repetition queue</h2><button id="reviewDueBtn" class="secondary">Practice due mistakes</button></div><div id="reviewList" class="list"></div></section>
+    <section class="card" style="margin-top:20px"><h2 style="margin-top:0">Recent errors</h2><div id="errorList" class="list"></div></section>
+  </section>
+
+  <section id="tab-random" class="tab-panel">
+    <section class="card"><div class="toolbar"><h2 style="margin:0">Random words & sentences</h2><button id="shuffleList" class="secondary">Shuffle list</button></div><div id="randomList" class="list"></div></section>
+  </section>
+
+  <section id="tab-backup" class="tab-panel">
+    <section class="card">
+      <div class="toolbar"><h2 style="margin:0">Backup / Restore</h2><button id="resetStats" class="danger">Reset progress</button></div>
+      <p class="muted">Export or import your local progress JSON.</p>
+      <div class="row"><button id="exportBtn">Export progress JSON</button><input id="importFile" type="file" accept="application/json,.json" /><button id="importBtn" class="secondary">Import selected JSON</button></div>
+    </section>
+  </section>
+
+  <section id="tab-debug" class="tab-panel">
+    <section class="card">
+      <div class="toolbar"><h2 style="margin:0">Debug & Question Picker</h2><button id="clearDebugBtn" class="secondary">Clear log</button></div>
+
+      <div class="test-box">
+        <h3 style="margin-top:0">System effect tests</h3>
+        <p class="muted">Use these buttons to test animations, sounds, rewards, chest flow, and shop spending without needing to grind progress.</p>
+        <div class="debug-test-grid">
+          <button id="debugTestLevelUpBtn" class="debug-test-btn" type="button">🌟 Test Level Up<small>Visual/audio only</small></button>
+          <button id="debugAddNextLevelXPBtn" class="debug-test-btn" type="button">⬆️ Add XP to Next Level<small>Real XP increase</small></button>
+          <button id="debugTestBadgeBtn" class="debug-test-btn" type="button">🏅 Test Badge Unlock<small>Toast + gold burst</small></button>
+          <button id="debugTestChestBtn" class="debug-test-btn" type="button">🎁 Test Chest Flow<small>Adds one test chest</small></button>
+          <button id="debugAddRainbowBtn" class="debug-test-btn" type="button">🌈 Add 10 Tokens<small>Test shop currency</small></button>
+          <button id="debugSpendDoubleXPBtn" class="debug-test-btn" type="button">💎 Spend Token Test<small>Buys Double XP potion</small></button>
+          <button id="debugCoinSoundBtn" class="debug-test-btn" type="button">🪙 Test Spend Sound<small>Coin sound only</small></button>
+          <button id="debugCorrectBtn" class="debug-test-btn" type="button">✅ Test Correct Effect<small>Flash + sound</small></button>
+          <button id="debugRainbowBtn" class="debug-test-btn" type="button">🌈 Test Rainbow Pulse<small>Rainbow screen effect</small></button>
+          <button id="debugGoldBtn" class="debug-test-btn" type="button">✨ Test Gold Burst<small>Gold particles</small></button>
+        </div>
+      </div>
+      <div class="test-box">
+        <h3 style="margin-top:0">Force practice question</h3>
+        <p class="muted">Search German, Spanish, category, level, or type. Selecting a card switches Practice to that exact question.</p>
+        <div class="row">
+          <input id="debugQuestionSearch" type="text" placeholder="Search question, answer, category, level..." />
+          <select id="debugDirection"><option value="de-es">German → Spanish</option><option value="es-de">Spanish → German</option><option value="mixed">Random direction</option></select>
+          <button id="debugClearSearchBtn" class="secondary">Clear search</button>
+        </div>
+        <div id="debugQuestionResults" class="list" style="margin-top:12px;max-height:320px"></div>
+      </div>
+      <p class="muted">Browser console: press F12 → Console.</p>
+      <pre id="debugLog"></pre>
+    </section>
+  </section>
+</main>
+
+
+<div id="chestModal" class="chest-modal hidden" aria-modal="true" role="dialog">
+  <div id="chestCard" class="chest-card">
+    <h2 class="chest-title">Treasure Chest!</h2>
+    <p id="chestReason" class="muted">You reached a milestone.</p>
+    <div id="treasureChest" class="treasure-chest" title="Click to open">
+      <div class="lid"></div>
+      <div class="body"></div>
+      <div class="band"></div>
+      <div class="lock"></div>
+    </div>
+    <div id="chestGlow" class="chest-glow"></div>
+    <div id="rewardItem" class="reward-item"></div>
+    <p id="chestAutoText" class="muted" style="margin-top:14px">Preparing your reward...</p>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <strong>Spanish Holiday Trainer</strong>
+  <div>Practice a little every day and build travel confidence.</div>
+  <div class="footer-stats">
+    <span>🇪🇸 A1 → B1 Travel Spanish</span>
+    <span>🎯 Spaced Repetition</span>
+    <span>🏆 XP & Badges</span>
+    <span>💾 Local Progress Save</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const DATA = [
+    {de:"Hallo", es:"Hola", cat:"Basics", type:"word", level:"A1.1"},
+    {de:"Bitte", es:"Por favor", cat:"Basics", type:"word", level:"A1.1"},
+    {de:"Danke", es:"Gracias", cat:"Basics", type:"word", level:"A1.1"},
+    {de:"Ja", es:"Sí", cat:"Basics", type:"word", level:"A1.1"},
+    {de:"Nein", es:"No", cat:"Basics", type:"word", level:"A1.1"},
+    {de:"Entschuldigung", es:"Perdón", esAlt:["disculpe","lo siento"], cat:"Basics", type:"word", level:"A1.1"},
+    {de:"Guten Morgen", es:"Buenos días", cat:"Basics", type:"phrase", level:"A1.1"},
+    {de:"Guten Abend", es:"Buenas tardes", cat:"Basics", type:"phrase", level:"A1.1"},
+    {de:"Ich verstehe nicht", es:"No entiendo", cat:"Basics", type:"phrase", level:"A1.1"},
+    {de:"Sprechen Sie Deutsch?", es:"¿Habla alemán?", cat:"Basics", type:"phrase", level:"A1.2"},
+    {de:"Können Sie langsamer sprechen?", es:"¿Puede hablar más despacio?", cat:"Basics", type:"phrase", level:"A1.3"},
+    {de:"Könnten Sie das bitte wiederholen?", es:"¿Podría repetirlo, por favor?", cat:"Basics", type:"phrase", level:"A2.1"},
+    {de:"Ich habe nur ein bisschen Spanisch gelernt", es:"Solo he aprendido un poco de español", cat:"Basics", type:"phrase", level:"A2.2"},
+    {de:"Ich versuche, Spanisch zu üben", es:"Estoy intentando practicar español", cat:"Basics", type:"phrase", level:"B1"},
+    {de:"wahrscheinlich", es:"probablemente", cat:"Basics", type:"word", level:"B1"},
+    {de:"vielleicht", es:"quizás", cat:"Basics", type:"word", level:"A2.1"},
+
+    {de:"Wie viel kostet das?", es:"¿Cuánto cuesta?", cat:"Shopping", type:"phrase", level:"A1.1"},
+    {de:"Kann ich mit Karte bezahlen?", es:"¿Puedo pagar con tarjeta?", cat:"Shopping", type:"phrase", level:"A1.2"},
+    {de:"Ich möchte bar bezahlen", es:"Quiero pagar en efectivo", cat:"Shopping", type:"phrase", level:"A1.2"},
+    {de:"der Preis", es:"el precio", esAlt:["el coste","el costo"], cat:"Shopping", type:"word", level:"A1.1"},
+    {de:"Kann ich das zurückgeben?", es:"¿Puedo devolver esto?", cat:"Shopping", type:"phrase", level:"A2.1"},
+    {de:"Gibt es einen Rabatt?", es:"¿Hay algún descuento?", cat:"Shopping", type:"phrase", level:"A2.2"},
+    {de:"Ich möchte vergleichen, bevor ich kaufe", es:"Quiero comparar antes de comprar", cat:"Shopping", type:"phrase", level:"B1"},
+    {de:"der Rabatt", es:"el descuento", cat:"Shopping", type:"word", level:"A2.2"},
+
+    {de:"die Rechnung", es:"la cuenta", esAlt:["la factura","el recibo","la receta"], cat:"Restaurant", type:"word", level:"A1.1"},
+    {de:"Wasser", es:"agua", cat:"Restaurant", type:"word", level:"A1.1"},
+    {de:"Kaffee", es:"café", esAlt:["un café"], cat:"Restaurant", type:"word", level:"A1.1"},
+    {de:"Bier", es:"cerveza", cat:"Restaurant", type:"word", level:"A1.1"},
+    {de:"Wein", es:"vino", cat:"Restaurant", type:"word", level:"A1.1"},
+    {de:"Die Rechnung, bitte", es:"La cuenta, por favor", cat:"Restaurant", type:"phrase", level:"A1.1"},
+    {de:"Ich bin Vegetarier", es:"Soy vegetariano", cat:"Restaurant", type:"phrase", level:"A1.2"},
+    {de:"Ich habe eine Allergie", es:"Tengo una alergia", cat:"Restaurant", type:"phrase", level:"A1.3"},
+    {de:"Ich hätte gern eine Empfehlung", es:"Me gustaría una recomendación", cat:"Restaurant", type:"phrase", level:"A2.1"},
+    {de:"Was empfehlen Sie?", es:"¿Qué recomienda?", cat:"Restaurant", type:"phrase", level:"A2.1"},
+    {de:"Ich möchte etwas Typisches probieren", es:"Quiero probar algo típico", cat:"Restaurant", type:"phrase", level:"A2.2"},
+    {de:"Könnten Sie das Gericht ohne Zwiebeln machen?", es:"¿Podría preparar el plato sin cebolla?", cat:"Restaurant", type:"phrase", level:"B1"},
+    {de:"Die Rechnung scheint nicht zu stimmen", es:"Creo que la cuenta no está bien", cat:"Restaurant", type:"phrase", level:"B1"},
+
+    {de:"Wo ist der Flughafen?", es:"¿Dónde está el aeropuerto?", cat:"Airport", type:"phrase", level:"A1.2"},
+    {de:"Mein Flug hat Verspätung", es:"Mi vuelo está retrasado", cat:"Airport", type:"phrase", level:"A2.1"},
+    {de:"Wo ist die Gepäckausgabe?", es:"¿Dónde está la recogida de equipaje?", cat:"Airport", type:"phrase", level:"A2.1"},
+    {de:"Kann ich meinen Sitzplatz ändern?", es:"¿Puedo cambiar mi asiento?", cat:"Airport", type:"phrase", level:"A2.2"},
+    {de:"Ich habe meinen Anschlussflug verpasst", es:"He perdido mi vuelo de conexión", cat:"Airport", type:"phrase", level:"B1"},
+    {de:"das Gepäck", es:"el equipaje", cat:"Airport", type:"word", level:"A2.1"},
+
+    {de:"Ich brauche ein Taxi", es:"Necesito un taxi", cat:"Taxi", type:"phrase", level:"A1.1"},
+    {de:"Wie viel kostet die Fahrt?", es:"¿Cuánto cuesta el viaje?", cat:"Taxi", type:"phrase", level:"A1.2"},
+    {de:"Fahren Sie bitte zum Hotel", es:"Lléveme al hotel, por favor", cat:"Taxi", type:"phrase", level:"A1.3"},
+    {de:"Bitte bringen Sie mich zu dieser Adresse", es:"Por favor, lléveme a esta dirección", cat:"Taxi", type:"phrase", level:"A2.1"},
+    {de:"Ich habe es eilig", es:"Tengo prisa", cat:"Taxi", type:"phrase", level:"A2.1"},
+    {de:"Gibt es eine schnellere Route?", es:"¿Hay una ruta más rápida?", cat:"Taxi", type:"phrase", level:"B1"},
+
+    {de:"links", es:"izquierda", cat:"Directions", type:"word", level:"A1.1"},
+    {de:"rechts", es:"derecha", cat:"Directions", type:"word", level:"A1.1"},
+    {de:"geradeaus", es:"todo recto", cat:"Directions", type:"word", level:"A1.1"},
+    {de:"Wo ist die Toilette?", es:"¿Dónde está el baño?", cat:"Directions", type:"phrase", level:"A1.1"},
+    {de:"Könnten Sie mir den Weg erklären?", es:"¿Podría explicarme el camino?", cat:"Directions", type:"phrase", level:"A2.2"},
+    {de:"Ich glaube, ich habe mich verlaufen", es:"Creo que me he perdido", cat:"Directions", type:"phrase", level:"B1"},
+
+    {de:"Ich habe eine Reservierung", es:"Tengo una reserva", cat:"Hotel", type:"phrase", level:"A1.1"},
+    {de:"Gibt es WLAN?", es:"¿Hay wifi?", cat:"Hotel", type:"phrase", level:"A1.1"},
+    {de:"Der Schlüssel funktioniert nicht", es:"La llave no funciona", cat:"Hotel", type:"phrase", level:"A1.2"},
+    {de:"Ich habe online gebucht", es:"He reservado por internet", cat:"Hotel", type:"phrase", level:"A2.2"},
+    {de:"Ist das Frühstück im Preis enthalten?", es:"¿El desayuno está incluido en el precio?", cat:"Hotel", type:"phrase", level:"A2.2"},
+    {de:"Könnten Sie mir ein ruhigeres Zimmer geben?", es:"¿Podría darme una habitación más tranquila?", cat:"Hotel", type:"phrase", level:"B1"},
+
+    {de:"Hilfe!", es:"¡Ayuda!", cat:"Emergency", type:"phrase", level:"A1.1"},
+    {de:"Ich brauche einen Arzt", es:"Necesito un médico", cat:"Emergency", type:"phrase", level:"A1.2"},
+    {de:"Es ist ein Notfall", es:"Es una emergencia", cat:"Emergency", type:"phrase", level:"A1.3"},
+    {de:"Ich brauche dringend Hilfe", es:"Necesito ayuda urgentemente", cat:"Emergency", type:"phrase", level:"A2.1"},
+    {de:"Ich habe starke Schmerzen", es:"Tengo mucho dolor", cat:"Emergency", type:"phrase", level:"A2.1"},
+    {de:"Meine Tasche wurde gestohlen", es:"Me han robado el bolso", cat:"Emergency", type:"phrase", level:"B1"},
+    {de:"Können Sie mir sagen, wo das nächste Krankenhaus ist?", es:"¿Puede decirme dónde está el hospital más cercano?", cat:"Emergency", type:"phrase", level:"B1"},
+
+    {de:"Ich bin im Urlaub", es:"Estoy de vacaciones", cat:"Holiday", type:"phrase", level:"A1.1"},
+    {de:"Der Strand ist schön", es:"La playa es bonita", cat:"Holiday", type:"phrase", level:"A1.1"},
+    {de:"Ich suche ein Restaurant", es:"Busco un restaurante", cat:"Holiday", type:"phrase", level:"A1.2"},
+    {de:"Ich bleibe eine Woche hier", es:"Me quedo aquí una semana", cat:"Holiday", type:"phrase", level:"A2.1"},
+    {de:"Wir möchten einen Tagesausflug machen", es:"Queremos hacer una excursión de un día", cat:"Holiday", type:"phrase", level:"A2.2"},
+    {de:"Was sollte man hier unbedingt sehen?", es:"¿Qué hay que ver aquí sin falta?", cat:"Holiday", type:"phrase", level:"B1"},
+    {de:"Ich interessiere mich für Geschichte und Kultur", es:"Me interesa la historia y la cultura", cat:"Holiday", type:"phrase", level:"B1"}
+  ];
+
+  const STORAGE_KEY = "spanishHolidayTrainerV2Clean";
+  const REVIEW_INTERVALS = [0,1,3,7,14,30];
+  const BADGES = [
+    // First steps
+    {id:"first",emoji:"🌟",title:"First Sparkle",desc:"Get 1 correct",test:p=>p.correct>=1},
+    {id:"five_correct",emoji:"✨",title:"Tiny Win",desc:"Get 5 correct",test:p=>p.correct>=5},
+    {id:"ten",emoji:"💎",title:"10 Gems",desc:"Get 10 correct",test:p=>p.correct>=10},
+    {id:"twentyfive",emoji:"🎀",title:"25 Pretty Wins",desc:"Get 25 correct",test:p=>p.correct>=25},
+    {id:"fifty",emoji:"👑",title:"Phrase Queen",desc:"Get 50 correct",test:p=>p.correct>=50},
+    {id:"hundred_correct",emoji:"🏰",title:"Spanish Castle",desc:"Get 100 correct",test:p=>p.correct>=100},
+    {id:"twohundred_correct",emoji:"🦋",title:"Conversation Butterfly",desc:"Get 200 correct",test:p=>p.correct>=200},
+    {id:"fivehundred_correct",emoji:"🌌",title:"Galaxy Learner",desc:"Get 500 correct",test:p=>p.correct>=500},
+    {id:"thousand_correct",emoji:"🐉",title:"Spanish Dragon",desc:"Get 1000 correct",test:p=>p.correct>=1000},
+
+    // XP ladder
+    {id:"xp100",emoji:"🪙",title:"Pocket Coins",desc:"Reach 100 XP",test:p=>p.xp>=100},
+    {id:"xp250",emoji:"💵",title:"Travel Fund",desc:"Reach 250 XP",test:p=>p.xp>=250},
+    {id:"xp500",emoji:"✨",title:"XP Glitter",desc:"Reach 500 XP",test:p=>p.xp>=500},
+    {id:"xp750",emoji:"🌷",title:"Blooming Spanish",desc:"Reach 750 XP",test:p=>p.xp>=750},
+    {id:"xp1000",emoji:"🏖️",title:"Beach Talker",desc:"Reach 1000 XP",test:p=>p.xp>=1000},
+    {id:"xp1500",emoji:"🌈",title:"Rainbow Traveler",desc:"Reach 1500 XP",test:p=>p.xp>=1500},
+    {id:"xp2000",emoji:"💫",title:"Starlight Speaker",desc:"Reach 2000 XP",test:p=>p.xp>=2000},
+    {id:"xp2600",emoji:"🇪🇸",title:"B1 Explorer",desc:"Reach B1 level",test:p=>p.xp>=2600},
+    {id:"xp3500",emoji:"🚀",title:"Rocket Spanish",desc:"Reach 3500 XP",test:p=>p.xp>=3500},
+    {id:"xp5000",emoji:"👸",title:"Spanish Royalty",desc:"Reach 5000 XP",test:p=>p.xp>=5000},
+    {id:"xp7500",emoji:"🌟",title:"Supernova Spanish",desc:"Reach 7500 XP",test:p=>p.xp>=7500},
+    {id:"xp10000",emoji:"🏆",title:"Legendary Learner",desc:"Reach 10000 XP",test:p=>p.xp>=10000},
+
+    // Combo ladder
+    {id:"combo3",emoji:"🔥",title:"Spark Starter",desc:"3 correct in a row",test:p=>p.bestCombo>=3},
+    {id:"combo5",emoji:"🔥",title:"Combo Flame",desc:"5 correct in a row",test:p=>p.bestCombo>=5},
+    {id:"combo10",emoji:"🚀",title:"Rocket Brain",desc:"10 correct in a row",test:p=>p.bestCombo>=10},
+    {id:"combo15",emoji:"⚡",title:"Lightning Streak",desc:"15 correct in a row",test:p=>p.bestCombo>=15},
+    {id:"combo20",emoji:"🌋",title:"Volcano Combo",desc:"20 correct in a row",test:p=>p.bestCombo>=20},
+    {id:"combo30",emoji:"🐆",title:"Panther Focus",desc:"30 correct in a row",test:p=>p.bestCombo>=30},
+    {id:"combo50",emoji:"💥",title:"Unstoppable",desc:"50 correct in a row",test:p=>p.bestCombo>=50},
+
+    // Streak ladder for 85-day journey
+    {id:"streak1",emoji:"🌱",title:"Day One Seed",desc:"Practice for 1 day",test:p=>p.bestStreak>=1},
+    {id:"streak3",emoji:"🏆",title:"3-Day Glow",desc:"3 day streak",test:p=>p.bestStreak>=3},
+    {id:"streak5",emoji:"🌸",title:"Five-Day Flower",desc:"5 day streak",test:p=>p.bestStreak>=5},
+    {id:"streak7",emoji:"📅",title:"One Week Wonder",desc:"7 day streak",test:p=>p.bestStreak>=7},
+    {id:"streak10",emoji:"💖",title:"10-Day Heart",desc:"10 day streak",test:p=>p.bestStreak>=10},
+    {id:"streak14",emoji:"🌙",title:"Two Week Moon",desc:"14 day streak",test:p=>p.bestStreak>=14},
+    {id:"streak21",emoji:"🧠",title:"Habit Builder",desc:"21 day streak",test:p=>p.bestStreak>=21},
+    {id:"streak30",emoji:"💐",title:"One Month Bouquet",desc:"30 day streak",test:p=>p.bestStreak>=30},
+    {id:"streak45",emoji:"🦄",title:"Unicorn Discipline",desc:"45 day streak",test:p=>p.bestStreak>=45},
+    {id:"streak60",emoji:"🌞",title:"Sunny Routine",desc:"60 day streak",test:p=>p.bestStreak>=60},
+    {id:"streak75",emoji:"🏝️",title:"Holiday Ready",desc:"75 day streak",test:p=>p.bestStreak>=75},
+    {id:"streak85",emoji:"🎉",title:"85-Day Champion",desc:"Complete the 85-day journey",test:p=>p.bestStreak>=85},
+
+    // Attempts / dedication
+    {id:"attempt25",emoji:"✍️",title:"Practice Pen",desc:"Make 25 attempts",test:p=>p.attempts>=25},
+    {id:"attempt100",emoji:"📚",title:"Study Stack",desc:"Make 100 attempts",test:p=>p.attempts>=100},
+    {id:"attempt250",emoji:"🧳",title:"Packed Vocabulary",desc:"Make 250 attempts",test:p=>p.attempts>=250},
+    {id:"attempt500",emoji:"🛫",title:"Flight Mode",desc:"Make 500 attempts",test:p=>p.attempts>=500},
+    {id:"attempt1000",emoji:"🌍",title:"World Traveler",desc:"Make 1000 attempts",test:p=>p.attempts>=1000},
+
+    // Accuracy badges
+    {id:"accuracy70",emoji:"🎯",title:"Steady Aim",desc:"70% accuracy after 50 attempts",test:p=>p.attempts>=50 && Math.round((p.correct/p.attempts)*100)>=70},
+    {id:"accuracy80",emoji:"🏹",title:"Sharp Translator",desc:"80% accuracy after 75 attempts",test:p=>p.attempts>=75 && Math.round((p.correct/p.attempts)*100)>=80},
+    {id:"accuracy90",emoji:"💎",title:"Crystal Clear",desc:"90% accuracy after 100 attempts",test:p=>p.attempts>=100 && Math.round((p.correct/p.attempts)*100)>=90},
+    {id:"accuracy95",emoji:"👑",title:"Almost Perfect",desc:"95% accuracy after 150 attempts",test:p=>p.attempts>=150 && Math.round((p.correct/p.attempts)*100)>=95},
+
+    // Weekly/monthly quest badges
+    {id:"weekly_correct35",emoji:"📆",title:"Weekly Warrior",desc:"Finish weekly correct quest",test:p=>!!p.weeklyRewards?.correct35},
+    {id:"weekly_xp350",emoji:"🌟",title:"Weekly Star",desc:"Finish weekly XP quest",test:p=>!!p.weeklyRewards?.xp350},
+    {id:"monthly_correct150",emoji:"🗓️",title:"Monthly Momentum",desc:"Finish monthly correct quest",test:p=>!!p.monthlyRewards?.correct150},
+    {id:"monthly_xp1500",emoji:"🌕",title:"Full Moon Grind",desc:"Finish monthly XP quest",test:p=>!!p.monthlyRewards?.xp1500},
+
+    // Weekly test
+    {id:"weekly_test_started",emoji:"🧪",title:"Test Taker",desc:"Complete a weekly test",test:p=>!!p.lastWeeklyTestAt},
+    {id:"weekly_test_4",emoji:"🔬",title:"Test Spark",desc:"Score 4/10 or better",test:p=>p.weeklyTestBest>=4},
+    {id:"weekly_test_6",emoji:"📈",title:"Test Climber",desc:"Score 6/10 or better",test:p=>p.weeklyTestBest>=6},
+    {id:"weekly_test_8",emoji:"⭐",title:"Test Star",desc:"Score 8/10 or better",test:p=>p.weeklyTestBest>=8},
+    {id:"weekly_test_10",emoji:"🥇",title:"Perfect Test",desc:"Score 10/10",test:p=>p.weeklyTestBest>=10},
+
+    // Chest / inventory
+    {id:"first_chest",emoji:"🎁",title:"First Treasure",desc:"Open 1 treasure chest",test:p=>Object.keys(p.openedChests||{}).length>=1},
+    {id:"three_chests",emoji:"🪙",title:"Treasure Hunter",desc:"Open 3 treasure chests",test:p=>Object.keys(p.openedChests||{}).length>=3},
+    {id:"six_chests",emoji:"💰",title:"Gold Collector",desc:"Open 6 treasure chests",test:p=>Object.keys(p.openedChests||{}).length>=6},
+    {id:"all_chests",emoji:"🏴‍☠️",title:"Pirate Queen",desc:"Open 9 treasure chests",test:p=>Object.keys(p.openedChests||{}).length>=9},
+    {id:"shield1",emoji:"🛡️",title:"Protected Streak",desc:"Own a streak shield",test:p=>(p.rewards?.streakShields||0)>=1},
+    {id:"boost1",emoji:"🔥",title:"Boosted Brain",desc:"Own a combo boost",test:p=>(p.rewards?.comboBoosts||0)>=1},
+
+    // Category-themed long-term badges based on correct cards in categories
+    {id:"restaurant10",emoji:"🍽️",title:"Restaurant Ready",desc:"10 restaurant/card correct answers",test:p=>categoryCorrect(p,"Restaurant")>=10},
+    {id:"restaurant30",emoji:"🥘",title:"Tapas Talker",desc:"30 restaurant/card correct answers",test:p=>categoryCorrect(p,"Restaurant")>=30},
+    {id:"hotel10",emoji:"🏨",title:"Hotel Helper",desc:"10 hotel/card correct answers",test:p=>categoryCorrect(p,"Hotel")>=10},
+    {id:"hotel30",emoji:"🛎️",title:"Reception Pro",desc:"30 hotel/card correct answers",test:p=>categoryCorrect(p,"Hotel")>=30},
+    {id:"airport10",emoji:"🛫",title:"Airport Ace",desc:"10 airport/card correct answers",test:p=>categoryCorrect(p,"Airport")>=10},
+    {id:"airport30",emoji:"🧳",title:"Boarding Boss",desc:"30 airport/card correct answers",test:p=>categoryCorrect(p,"Airport")>=30},
+    {id:"taxi10",emoji:"🚕",title:"Taxi Talk",desc:"10 taxi/card correct answers",test:p=>categoryCorrect(p,"Taxi")>=10},
+    {id:"directions10",emoji:"🧭",title:"Direction Finder",desc:"10 directions/card correct answers",test:p=>categoryCorrect(p,"Directions")>=10},
+    {id:"emergency10",emoji:"🚑",title:"Emergency Ready",desc:"10 emergency/card correct answers",test:p=>categoryCorrect(p,"Emergency")>=10},
+    {id:"holiday20",emoji:"🏖️",title:"Holiday Speaker",desc:"20 holiday/card correct answers",test:p=>categoryCorrect(p,"Holiday")>=20},
+
+    // Level-themed badges
+    {id:"a1_50",emoji:"🌱",title:"A1 Garden",desc:"50 A1/card correct answers",test:p=>levelBandCorrect(p,"A1")>=50},
+    {id:"a2_50",emoji:"🌿",title:"A2 Growth",desc:"50 A2/card correct answers",test:p=>levelBandCorrect(p,"A2")>=50},
+    {id:"b1_25",emoji:"🌳",title:"B1 Tree",desc:"25 B1/card correct answers",test:p=>levelBandCorrect(p,"B1")>=25},
+    {id:"b1_75",emoji:"🏔️",title:"B1 Mountain",desc:"75 B1/card correct answers",test:p=>levelBandCorrect(p,"B1")>=75},
+
+    // Fun motivational badges
+    {id:"errors10",emoji:"🧩",title:"Mistake Detective",desc:"Make 10 mistakes and keep going",test:p=>p.errors>=10},
+    {id:"errors50",emoji:"🔧",title:"Repair Genius",desc:"Make 50 mistakes and keep going",test:p=>p.errors>=50},
+    {id:"resilience",emoji:"💪",title:"Resilient Learner",desc:"100 correct despite mistakes",test:p=>p.correct>=100 && p.errors>=20},
+    {id:"night_owl",emoji:"🦉",title:"Night Owl",desc:"Practice after 9 PM",test:p=>!!p.specialBadges?.nightOwl},
+    {id:"early_bird",emoji:"🐦",title:"Early Bird",desc:"Practice before 8 AM",test:p=>!!p.specialBadges?.earlyBird}
+  ];
+
+  const $ = id => document.getElementById(id);
+  const ids = [
+    "themeSelect","soundToggleBtn","levelFilter","mode","typeFilter","categoryFilter","promptMeta","promptText","promptHint","answerInput","checkBtn","showBtn","speakPromptBtn","speakAnswerBtn","nextBtn","feedback","correctAnswer",
+    "attempts","correct","errors","accuracy","xp","streak","dueCount","userLevel","levelRing","ringLevel","ringPct","levelProgress","levelText","dashboardXP","dashboardTitle","dashboardCombo","badgeCountText","calendarTitle","calendarGrid","prevMonthBtn","nextMonthBtn","questList","weeklyTestBox","chestPanel","chestModal","chestCard","chestReason","treasureChest","chestGlow","rewardItem","chestAutoText","badgeGrid",
+    "reviewDueBtn","reviewList","errorList","shuffleList","randomList","phrasebookCategoryFilter","phrasebookLevelFilter","phrasebook","resetStats","exportBtn","importFile","importBtn",
+    "testStatus","testArea","testMeta","testPromptText","testHint","testAnswerInput","testCheckBtn","testNextBtn","testFeedback","exitTestBtn",
+    "debugQuestionSearch","debugDirection","debugClearSearchBtn","debugQuestionResults","clearDebugBtn","debugLog"
+  ];
+  const els = {};
+  ids.forEach(id => els[id] = $(id));
+
+  let current = null;
+  let checked = false;
+  let revealed = false;
+  let dueOnly = false;
+  let testState = null;
+
+  function log(msg, data) {
+    const line = "[" + new Date().toLocaleTimeString() + "] " + msg + (data ? " " + JSON.stringify(data) : "");
+    console.log(line);
+    if (els.debugLog) els.debugLog.textContent += line + "\n";
+  }
+  window.addEventListener("error", e => log("JS ERROR: " + e.message, {line:e.lineno, col:e.colno}));
+
+  function fresh() {
+    return {
+      theme:"auto", soundMuted:false, attempts:0, correct:0, errors:0, xp:0,
+      currentStreak:0, bestStreak:0, combo:0, bestCombo:0,
+      dailyCorrect:0, dailyXP:0, dailyRewards:{},
+      weeklyCorrect:0, weeklyXP:0, weeklyRewards:{}, lastWeekKey:null,
+      monthlyCorrect:0, monthlyXP:0, monthlyRewards:{}, lastMonthKey:null,
+      lastPracticeDate:null, recentErrors:[], cards:{}, badges:{}, specialBadges:{},
+      lastWeeklyTestAt:null, weeklyTestBest:0, chests:[], openedChests:{}, rewards:{streakShields:0, comboBoosts:0, doubleXPPotions:0, rainbowTokens:0}, activeBoost:{comboRemaining:0,doubleXPRemaining:0,holidayPassUntil:null}, practiceDays:{}, protectedDays:{}, missedDays:{}, studySessions:{}, currentStudySessionStartedAt:null, lastStudyActivityAt:null
+    };
+  }
+  function load() {
+    try {
+      const p = {...fresh(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")};
+      p.cards ||= {}; p.badges ||= {}; p.specialBadges ||= {}; p.recentErrors ||= [];
+      p.dailyRewards ||= {}; p.weeklyRewards ||= {}; p.monthlyRewards ||= {}; p.chests ||= []; p.openedChests ||= {}; p.rewards ||= {streakShields:0, comboBoosts:0, doubleXPPotions:0, rainbowTokens:0}; p.activeBoost ||= {comboRemaining:0,doubleXPRemaining:0,holidayPassUntil:null}; p.practiceDays ||= {}; p.protectedDays ||= {}; p.missedDays ||= {}; p.studySessions ||= {};
+      return p;
+    } catch { return fresh(); }
+  }
+  let progress = load();
+
+  function save(render=true) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    if (render) renderAll();
+  }
+
+  function esc(s){return String(s).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c]))}
+  function jsEsc(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ")}
+  function norm(s){return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[¿?¡!.,;:]/g,"").replace(/\s+/g," ").trim()}
+  function idOf(x){return norm(x.de)+"|"+norm(x.es)}
+  function band(level){return String(level).split(".")[0]}
+  function matchLevel(level, f){const b=band(level); return f==="all" || b===f || (f==="A1-A2"&&(b==="A1"||b==="A2")) || (f==="A2-B1"&&(b==="A2"||b==="B1"))}
+  function acceptedAnswers(item, dir){const key=dir==="de-es"?"esAlt":"deAlt"; const main=dir==="de-es"?item.es:item.de; return [main,...(item[key]||[])].filter(Boolean)}
+  function isAccepted(answer, item, dir){const a=norm(answer); return acceptedAnswers(item,dir).some(x=>norm(x)===a)}
+  function displayAnswer(item, dir){const a=acceptedAnswers(item,dir); return a.length>1 ? a[0]+" / "+a.slice(1).join(" / ") : a[0]}
+
+  function categoryCorrect(p, category){
+    let total = 0;
+    for(const item of DATA){
+      if(item.cat === category){
+        total += (p.cards?.[idOf(item)]?.correct || 0);
+      }
+    }
+    return total;
+  }
+
+  function levelBandCorrect(p, wantedBand){
+    let total = 0;
+    for(const item of DATA){
+      if(band(item.level) === wantedBand){
+        total += (p.cards?.[idOf(item)]?.correct || 0);
+      }
+    }
+    return total;
+  }
+
+  function categories(){const priority=["Restaurant","Hotel","Airport","Taxi","Shopping","Emergency"]; const all=[...new Set(DATA.map(x=>x.cat))]; return ["All categories",...priority.filter(c=>all.includes(c)),...all.filter(c=>!priority.includes(c)).sort()]}
+  function pick(a){return a[Math.floor(Math.random()*a.length)]}
+  function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+  function today(){return new Date().toISOString().slice(0,10)}
+  function weekKey(){const d=new Date(); const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const ys=new Date(Date.UTC(t.getUTCFullYear(),0,1)); const w=Math.ceil((((t-ys)/86400000)+1)/7); return t.getUTCFullYear()+"-W"+String(w).padStart(2,"0")}
+  function monthKey(){const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+  function addDays(n){const d=new Date(); d.setDate(d.getDate()+n); d.setHours(0,0,0,0); return d.toISOString()}
+  function isDue(card){return card && card.dueAt && new Date(card.dueAt) <= new Date()}
+  function weeklyTestAvailable(){return !progress.lastWeeklyTestAt || new Date()-new Date(progress.lastWeeklyTestAt)>=7*24*60*60*1000}
+  function daysUntilTest(){if(!progress.lastWeeklyTestAt)return 0; const next=new Date(progress.lastWeeklyTestAt); next.setDate(next.getDate()+7); return Math.max(0,Math.ceil((next-new Date())/86400000))}
+
+  function updateWeeklyTestTabVisibility(){
+    const tabBtn = document.querySelector('.tab-btn[data-tab="weekly-test"]');
+    const panel = document.getElementById('tab-weekly-test');
+    const available = weeklyTestAvailable();
+
+    if(tabBtn) tabBtn.classList.toggle('hidden', !available);
+
+    if(!available && panel?.classList.contains('active')){
+      switchTab('dashboard');
+    }
+  }
+
+  function isHolidayPassActive(){
+    return progress.activeBoost?.holidayPassUntil && new Date(progress.activeBoost.holidayPassUntil) > new Date();
+  }
+
+
+  function ensureTodayStudySession(){
+    progress.studySessions ||= {};
+    const key = today();
+    progress.studySessions[key] ||= {seconds:0, startedAt:new Date().toISOString(), lastAt:null};
+    return progress.studySessions[key];
+  }
+
+  function recordStudyActivity(){
+    progress.studySessions ||= {};
+    const now = new Date();
+    const key = today();
+    const session = ensureTodayStudySession();
+    const last = progress.lastStudyActivityAt ? new Date(progress.lastStudyActivityAt) : null;
+
+    if(last && last.toISOString().slice(0,10) === key){
+      const delta = Math.floor((now - last) / 1000);
+      if(delta > 0 && delta <= 180){
+        session.seconds = (session.seconds || 0) + delta;
+      }
+    }
+
+    session.lastAt = now.toISOString();
+    progress.lastStudyActivityAt = now.toISOString();
+  }
+
+  function studyMinutesForDay(key){
+    const seconds = progress.studySessions?.[key]?.seconds || progress.practiceDays?.[key]?.studySeconds || 0;
+    return Math.max(0, Math.round(seconds / 60));
+  }
+
+
+  function markPracticeDay(){
+    progress.practiceDays ||= {};
+    progress.practiceDays[today()] = {
+      practiced:true,
+      xp:progress.dailyXP || 0,
+      correct:progress.dailyCorrect || 0,
+      studySeconds: progress.studySessions?.[today()]?.seconds || 0
+    };
+  }
+
+  function recordMissedDaysIfNeeded(){
+    progress.practiceDays ||= {};
+    progress.protectedDays ||= {};
+    progress.missedDays ||= {};
+    progress.rewards ||= {};
+    const last = progress.lastPracticeDate;
+    if(!last)return;
+
+    const cursor = new Date(last + "T00:00:00");
+    cursor.setDate(cursor.getDate() + 1);
+    const now = new Date(today() + "T00:00:00");
+
+    while(cursor < now){
+      const key = cursor.toISOString().slice(0,10);
+      if(!progress.practiceDays[key] && !progress.protectedDays[key] && !progress.missedDays[key]){
+        if((progress.rewards.streakShields || 0) > 0){
+          progress.rewards.streakShields--;
+          progress.protectedDays[key] = {protected:true, usedAt:new Date().toISOString()};
+          showToast("🛡️ Streak Shield Activated!", "A missed day was protected.", true);
+        } else {
+          progress.missedDays[key] = {missed:true};
+          progress.currentStreak = 0;
+        }
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  function levelName(xp){if(xp>=2600)return"B1"; if(xp>=1600)return"A2.2"; if(xp>=900)return"A2.1"; if(xp>=400)return"A1.2"; if(xp>=120)return"A1.1"; return"Beginner"}
+  function titleForXP(xp){if(xp>=2600)return"B1 Spanish Explorer"; if(xp>=1600)return"Confident Holiday Speaker"; if(xp>=900)return"Travel Conversation Star"; if(xp>=400)return"Practical Phrase Collector"; if(xp>=120)return"Holiday Spanish Beginner"; return"Beginner Traveler"}
+
+  function switchTab(name){
+    if(name === "weekly-test" && !weeklyTestAvailable()){
+      name = "dashboard";
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-" + name));
+    if(name==="practice") setTimeout(()=>els.answerInput.focus(),50);
+    if(name==="weekly-test") renderWeeklyTestPanel();
+    if(name==="phrasebook") renderPhrasebook();
+    if(name==="review"){ renderReview(); renderErrors(); }
+    if(name==="random") renderRandom();
+    if(name==="calendar") renderCalendar();
+    if(name==="debug") renderDebugQuestionSearch();
+  }
+
+  function applyTheme(){document.documentElement.dataset.theme=progress.theme||"auto"; els.themeSelect.value=progress.theme||"auto"}
+
+  function pool(){
+    const type=els.typeFilter.value, cat=els.categoryFilter.value||"All categories", lvl=els.levelFilter.value;
+    let out=DATA.filter(x=>(type==="all"||x.type===type) && matchLevel(x.level,lvl) && (cat==="All categories"||x.cat===cat));
+    if(dueOnly){const due=out.filter(x=>isDue(progress.cards[idOf(x)])); if(due.length) out=due}
+    return out.length ? out : DATA.slice();
+  }
+  function weighted(arr){
+    const w=[];
+    arr.forEach(x=>{const c=progress.cards[idOf(x)]; const n=!c?2:isDue(c)?6:Math.max(1,4-(c.box||0)); for(let i=0;i<n;i++)w.push(x)});
+    return pick(w.length?w:arr);
+  }
+
+  function setPrompt(item, dir, debug=false){
+    current = {
+      item, dir,
+      source: dir==="de-es" ? item.de : item.es,
+      target: dir==="de-es" ? item.es : item.de,
+      sourceLang: dir==="de-es" ? "de-DE" : "es-ES",
+      targetLang: dir==="de-es" ? "es-ES" : "de-DE"
+    };
+    checked=false; revealed=false;
+    els.promptMeta.textContent=`${item.level} · ${item.cat} · ${item.type} · ${dir==="de-es"?"German → Spanish":"Spanish → German"}${debug?" · DEBUG SELECTED":""}`;
+    els.promptText.textContent=current.source;
+    els.promptHint.textContent=dir==="de-es"?"Translate this into Spanish.":"Translate this into German.";
+    els.answerInput.value="";
+    els.answerInput.disabled=false;
+    els.checkBtn.disabled=false;
+    els.showBtn.disabled=false;
+    els.feedback.textContent="";
+    els.feedback.className="feedback";
+    els.correctAnswer.classList.add("hidden");
+    els.correctAnswer.querySelector("span").textContent="";
+    setTimeout(()=>els.answerInput.focus(),50);
+  }
+
+  function newPrompt(){
+    recordStudyActivity();
+    const item=weighted(pool());
+    const mode=els.mode.value;
+    const dir=mode==="mixed"?pick(["de-es","es-de"]):mode;
+    setPrompt(item,dir,false);
+  }
+
+  function updatePeriodCounters(){
+    recordMissedDaysIfNeeded();
+    const wk=weekKey(), mk=monthKey();
+    if(progress.lastWeekKey!==wk){progress.lastWeekKey=wk; progress.weeklyCorrect=0; progress.weeklyXP=0; progress.weeklyRewards={}}
+    if(progress.lastMonthKey!==mk){progress.lastMonthKey=mk; progress.monthlyCorrect=0; progress.monthlyXP=0; progress.monthlyRewards={}}
+    const t=today();
+    if(progress.lastPracticeDate!==t){
+      const y=new Date(); y.setDate(y.getDate()-1); const yk=y.toISOString().slice(0,10);
+      progress.currentStreak=progress.lastPracticeDate===yk?(progress.currentStreak||0)+1:1;
+      progress.bestStreak=Math.max(progress.bestStreak||0,progress.currentStreak);
+      progress.lastPracticeDate=t;
+      progress.dailyCorrect=0; progress.dailyXP=0; progress.dailyRewards={};
+    }
+  }
+
+  function updateCard(item, ok){
+    const id=idOf(item);
+    const c=progress.cards[id]||{box:0,attempts:0,correct:0,errors:0,dueAt:new Date().toISOString()};
+    c.attempts++; c.lastSeen=new Date().toISOString();
+    if(ok){c.correct++; c.box=Math.min(REVIEW_INTERVALS.length-1,(c.box||0)+1)} else {c.errors++; c.box=0}
+    c.dueAt=addDays(REVIEW_INTERVALS[c.box]);
+    progress.cards[id]=c;
+  }
+
+  function showToast(title, detail, conf=true){
+    document.querySelectorAll(".reward-toast").forEach(x=>x.remove());
+    const t=document.createElement("div"); t.className="reward-toast"; t.innerHTML=`<b>${esc(title)}</b><small>${esc(detail)}</small>`;
+    document.body.appendChild(t); setTimeout(()=>t.remove(),2300);
+    if(conf) confetti();
+  }
+  function confetti(){
+    const wrap=document.createElement("div"); wrap.className="confetti"; const bits=["✨","💖","🌟","💎","🎉","🌴","🇪🇸","🔥"];
+    for(let i=0;i<34;i++){const s=document.createElement("span"); s.textContent=pick(bits); s.style.left=Math.random()*100+"vw"; s.style.animationDelay=Math.random()*250+"ms"; s.style.fontSize=(1+Math.random()*1.2)+"rem"; wrap.appendChild(s)}
+    document.body.appendChild(wrap); setTimeout(()=>wrap.remove(),4200);
+  }
+  function showCorrectFlash(){
+    document.querySelectorAll(".correct-flash").forEach(x=>x.remove());
+    const f=document.createElement("div"); f.className="correct-flash"; f.textContent="Correct! ✨";
+    document.body.appendChild(f); setTimeout(()=>f.remove(),1200);
+  }
+
+  function showFloatingXP(amount){
+    if(!amount || amount <= 0)return;
+    const xp=document.createElement("div");
+    xp.className="floating-xp";
+    xp.textContent=`+${amount} XP`;
+    document.body.appendChild(xp);
+    setTimeout(()=>xp.remove(),1150);
+  }
+
+  function playLevelUpSound(){
+    if(playAudioFile("sfxLevelUp"))return;
+    try{
+      const ctx = audioContext();
+      if(!ctx)return;
+      const notes = [392,523.25,659.25,783.99,1046.5,1318.5,1567.98,1046.5];
+      notes.forEach((freq,index)=>{
+        const osc=ctx.createOscillator();
+        const gain=ctx.createGain();
+        const start=ctx.currentTime + index*0.11;
+        osc.type=index < 2 ? "triangle" : "sine";
+        osc.frequency.setValueAtTime(freq,start);
+        osc.frequency.exponentialRampToValueAtTime(freq*1.08,start+0.11);
+        gain.gain.setValueAtTime(0.001,start);
+        gain.gain.exponentialRampToValueAtTime(index < 5 ? 0.12 : 0.17,start+0.018);
+        gain.gain.exponentialRampToValueAtTime(0.001,start+0.38);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start+0.42);
+      });
+      setTimeout(()=>ctx.close && ctx.close(), 1800);
+    }catch(e){
+      log("level up sound failed", {message:e.message});
+    }
+  }
+
+  function showLevelUpFlash(){
+    document.querySelectorAll(".level-up-flash").forEach(x=>x.remove());
+    const flash=document.createElement("div");
+    flash.className="level-up-flash";
+    document.body.appendChild(flash);
+    setTimeout(()=>flash.remove(),3800);
+  }
+
+  function showLevelUpFireworks(){
+    const wrap=document.createElement("div");
+    wrap.className="level-up-fireworks";
+    const bits=["🎉","✨","🌟","💫","💎","🏆","👑","🪙","🇪🇸","🌈","🔥"];
+    for(let i=0;i<82;i++){
+      const s=document.createElement("span");
+      s.textContent=pick(bits);
+      const angle=Math.random()*Math.PI*2;
+      const dist=120+Math.random()*420;
+      const originX=35+Math.random()*30;
+      const originY=30+Math.random()*28;
+      s.style.left=originX+"vw";
+      s.style.top=originY+"vh";
+      s.style.setProperty("--x",Math.cos(angle)*dist+"px");
+      s.style.setProperty("--y",Math.sin(angle)*dist+"px");
+      s.style.setProperty("--r",(Math.random()*1080-540)+"deg");
+      s.style.animationDelay=(Math.random()*360)+"ms";
+      s.style.fontSize=(1+Math.random()*1.35)+"rem";
+      wrap.appendChild(s);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(()=>wrap.remove(),3900);
+  }
+
+  function showLevelUpBanner(fromLevel, toLevel){
+    document.querySelectorAll(".level-up-banner").forEach(x=>x.remove());
+    const banner=document.createElement("div");
+    banner.className="level-up-banner";
+    const from = fromLevel || "Previous";
+    const to = toLevel || levelName(progress.xp);
+    banner.innerHTML=`
+      <span class="level-up-big">LEVEL UP!</span>
+      <span class="level-up-sub">${esc(from)} → ${esc(to)}</span>
+      <span class="level-up-title">${esc(titleForXP(progress.xp))}</span>
+    `;
+    document.body.appendChild(banner);
+    setTimeout(()=>banner.remove(),4300);
+  }
+
+  function shakeScreen(){
+    document.body.classList.remove("level-screen-shake");
+    void document.body.offsetWidth;
+    document.body.classList.add("level-screen-shake");
+    setTimeout(()=>document.body.classList.remove("level-screen-shake"),950);
+  }
+
+  function showLevelUpCelebration(fromLevel, toLevel){
+    playLevelUpSound();
+    showLevelUpFlash();
+    showLevelUpBanner(fromLevel, toLevel);
+    showLevelUpFireworks();
+    showGoldBurst();
+    showRainbowPulse();
+    confetti();
+    shakeScreen();
+    showToast("🌟 Level up!", `${fromLevel || "Previous"} → ${toLevel || levelName(progress.xp)}`, true);
+  }
+
+  function showGoldBurst(){
+    const wrap=document.createElement("div");
+    wrap.className="gold-burst";
+    const bits=["💰","🪙","⭐","✨","🏆","💛","👑"];
+    for(let i=0;i<42;i++){
+      const s=document.createElement("span");
+      s.textContent=pick(bits);
+      const angle=Math.random()*Math.PI*2;
+      const dist=90+Math.random()*260;
+      s.style.setProperty("--x",Math.cos(angle)*dist+"px");
+      s.style.setProperty("--y",Math.sin(angle)*dist+"px");
+      s.style.setProperty("--r",(Math.random()*720-360)+"deg");
+      s.style.animationDelay=(Math.random()*140)+"ms";
+      wrap.appendChild(s);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(()=>wrap.remove(),2700);
+  }
+
+  function showRainbowPulse(){
+    document.querySelectorAll(".rainbow-pulse").forEach(x=>x.remove());
+    const pulse=document.createElement("div");
+    pulse.className="rainbow-pulse";
+    document.body.appendChild(pulse);
+    setTimeout(()=>pulse.remove(),1900);
+  }
+
+  function setSoundButton(){
+    if(!els.soundToggleBtn)return;
+    els.soundToggleBtn.textContent = progress.soundMuted ? "🔇 Sound Off" : "🔊 Sound On";
+  }
+
+  function audioContext(){
+    if(progress.soundMuted)return null;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx)return null;
+    return new AudioCtx();
+  }
+
+  function playAudioFile(id){
+    if(progress.soundMuted)return false;
+    const audio = document.getElementById(id);
+    if(!audio)return false;
+
+    try{
+      audio.pause();
+      audio.currentTime = 0;
+      const result = audio.play();
+      if(result && typeof result.catch === "function"){
+        result.catch(() => {});
+      }
+      return true;
+    }catch(e){
+      log("audio file failed", {id, message:e.message});
+      return false;
+    }
+  }
+
+  function playCorrectSound(){
+    if(playAudioFile("sfxCorrect"))return;
+    try{
+      const ctx = audioContext();
+      if(!ctx)return;
+
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = "triangle";
+      osc2.type = "sine";
+
+      osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15);
+
+      osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.15);
+
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start();
+      osc2.start();
+      osc1.stop(ctx.currentTime + 0.25);
+      osc2.stop(ctx.currentTime + 0.25);
+
+      setTimeout(()=>ctx.close && ctx.close(), 420);
+    }catch(e){
+      log("correct sound failed", {message:e.message});
+    }
+  }
+
+  function playComboSound(){
+    if(playAudioFile("sfxCombo"))return;
+    try{
+      const ctx = audioContext();
+      if(!ctx)return;
+
+      [523.25,659.25,783.99,1046.5].forEach((freq,index)=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + index * 0.06;
+
+        osc.frequency.value = freq;
+        osc.type = "triangle";
+
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.13, start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(start);
+        osc.stop(start + 0.14);
+      });
+
+      setTimeout(()=>ctx.close && ctx.close(), 620);
+    }catch(e){
+      log("combo sound failed", {message:e.message});
+    }
+  }
+
+  function playBadgeSound(){
+    if(!playAudioFile("sfxBadge")) playComboSound();
+  }
+
+  function playQuestSound(){
+    if(!playAudioFile("sfxQuest")) playComboSound();
+  }
+
+  function playWeeklyQuestSound(){
+    if(!playAudioFile("sfxWeeklyQuest")) playComboSound();
+  }
+
+  function playVictorySound(){
+    if(!playAudioFile("sfxVictory")) playComboSound();
+  }
+
+  function playWrongSound(){
+    if(playAudioFile("sfxWrong"))return;
+    try{
+      const ctx = audioContext();
+      if(!ctx)return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(160, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + 0.18);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.24);
+      setTimeout(()=>ctx.close && ctx.close(), 360);
+    }catch(e){
+      log("wrong sound failed", {message:e.message});
+    }
+  }
+
+  function award(){
+    progress.dailyRewards ||= {}; progress.weeklyRewards ||= {}; progress.monthlyRewards ||= {};
+    if(progress.dailyCorrect>=5&&!progress.dailyRewards.correct5){progress.dailyRewards.correct5=true; progress.xp+=25; progress.dailyXP+=25; progress.weeklyXP+=25; progress.monthlyXP+=25; showFloatingXP(25); playQuestSound(); showToast("🎯 Daily quest complete!","Warm-up sparkle: +25 bonus XP")}
+    if(progress.dailyXP>=50&&!progress.dailyRewards.xp50){progress.dailyRewards.xp50=true; playQuestSound(); showToast("💎 Daily XP quest!","You earned 50 XP today.")}
+    if(progress.weeklyCorrect>=35&&!progress.weeklyRewards.correct35){progress.weeklyRewards.correct35=true; progress.xp+=120; progress.weeklyXP+=120; progress.monthlyXP+=120; showFloatingXP(120); playWeeklyQuestSound(); showToast("🏆 Weekly quest complete!","35 correct this week: +120 XP")}
+    if(progress.weeklyXP>=350&&!progress.weeklyRewards.xp350){progress.weeklyRewards.xp350=true; progress.xp+=160; progress.weeklyXP+=160; progress.monthlyXP+=160; showFloatingXP(160); playWeeklyQuestSound(); showToast("🌟 Weekly XP quest!","350 XP this week: +160 XP bonus")}
+    if(progress.monthlyCorrect>=150&&!progress.monthlyRewards.correct150){progress.monthlyRewards.correct150=true; progress.xp+=500; progress.monthlyXP+=500; showFloatingXP(500); playWeeklyQuestSound(); showToast("👑 Monthly quest complete!","150 correct this month: +500 XP")}
+    if(progress.monthlyXP>=1500&&!progress.monthlyRewards.xp1500){progress.monthlyRewards.xp1500=true; progress.xp+=650; progress.monthlyXP+=650; showFloatingXP(650); playWeeklyQuestSound(); showToast("💖 Monthly XP quest!","1500 XP this month: +650 XP bonus")}
+    for(const b of BADGES){if(!progress.badges[b.id]&&b.test(progress)){progress.badges[b.id]=new Date().toISOString(); showGoldBurst(); playBadgeSound(); showToast(`${b.emoji} Badge unlocked!`,`${b.title}: ${b.desc}`); break}}
+  }
+
+  function check(){
+    if(!current||checked)return;
+    const ans=els.answerInput.value;
+    if(!ans.trim()){els.feedback.textContent="Write an answer first."; els.feedback.className="feedback warn"; return}
+    checked=true;
+    els.answerInput.disabled=true;
+    els.checkBtn.disabled=true;
+    const ok=isAccepted(ans,current.item,current.dir);
+    const levelBefore = levelName(progress.xp);
+    progress.attempts++;
+    updatePeriodCounters();
+    recordStudyActivity();
+    markPracticeDay();
+    progress.specialBadges ||= {};
+    const hourNow = new Date().getHours();
+    if(hourNow < 8) progress.specialBadges.earlyBird = true;
+    if(hourNow >= 21) progress.specialBadges.nightOwl = true;
+    updateCard(current.item,ok);
+
+    if(ok){
+      playCorrectSound();
+      showCorrectFlash(); confetti();
+      progress.correct++;
+      progress.combo=(progress.combo||0)+1;
+      progress.bestCombo=Math.max(progress.bestCombo||0,progress.combo);
+      progress.dailyCorrect++; progress.weeklyCorrect++; progress.monthlyCorrect++;
+      if(!revealed){
+        let earned=current.item.type==="phrase"?12:8;
+        if((progress.activeBoost?.comboRemaining||0)>0){
+          earned += 8;
+          progress.activeBoost.comboRemaining--;
+        }
+        if((progress.activeBoost?.doubleXPRemaining||0)>0){
+          earned *= 2;
+          progress.activeBoost.doubleXPRemaining--;
+        }
+        if(isHolidayPassActive()){
+          earned = Math.ceil(earned * 1.25);
+        }
+        progress.xp+=earned; progress.dailyXP+=earned; progress.weeklyXP+=earned; progress.monthlyXP+=earned; showFloatingXP(earned);
+        els.feedback.textContent=`Correct. +${earned} XP · ${progress.combo}x combo`;
+        if(progress.combo%5===0){ playComboSound(); showToast(`🔥 ${progress.combo}x combo!`,"You are on a glitter streak."); }
+      } else {
+        els.feedback.textContent="Correct, but no XP because answer was revealed.";
+      }
+      els.feedback.className="feedback good";
+    } else {
+      progress.errors++;
+      progress.combo=0;
+      progress.xp=Math.max(0,progress.xp+2);
+      progress.recentErrors.unshift({source:current.source,expected:displayAnswer(current.item,current.dir),given:ans,dir:current.dir,cat:current.item.cat,level:current.item.level});
+      progress.recentErrors=progress.recentErrors.slice(0,20);
+      playWrongSound();
+      els.feedback.textContent="Not quite. This card moved into your review queue.";
+      els.feedback.className="feedback bad";
+      reveal(false);
+    }
+    award();
+    checkChestMilestones();
+    if(ok && levelName(progress.xp) !== levelBefore){ showLevelUpCelebration(levelBefore, levelName(progress.xp)); }
+    save();
+  }
+
+  function reveal(userClicked=true){
+    recordStudyActivity();
+    markPracticeDay();
+    if(!current)return;
+    if(userClicked){
+      revealed=true; checked=true; progress.combo=0;
+      els.answerInput.disabled=true; els.checkBtn.disabled=true; els.showBtn.disabled=true;
+      els.feedback.textContent="Answer revealed. Continue with Next when ready.";
+      els.feedback.className="feedback warn";
+      save();
+    }
+    els.correctAnswer.querySelector("span").textContent=displayAnswer(current.item,current.dir);
+    els.correctAnswer.classList.remove("hidden");
+  }
+
+  function speak(text,lang){
+    if(!("speechSynthesis" in window)){alert("Text-to-speech is not supported in this browser."); return}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang; u.rate=lang.startsWith("es")?.86:.92;
+    speechSynthesis.speak(u);
+  }
+  window.speak=speak;
+
+
+  function playChestBuildSound(){
+    const audio = document.getElementById("sfxChestBuild");
+    if(!progress.soundMuted && audio){
+      try{
+        audio.pause();
+        audio.currentTime = 0;
+        const result = audio.play();
+        if(result && typeof result.catch === "function"){
+          result.catch(() => {});
+        }
+        return audio;
+      }catch(e){
+        log("chest build audio failed", {message:e.message});
+      }
+    }
+
+    try{
+      const ctx = audioContext();
+      if(!ctx)return null;
+
+      const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+      notes.forEach((freq, index) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + index * 0.11;
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, start);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.12, start + 0.1);
+
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.09, start + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.2);
+      });
+
+      setTimeout(()=>ctx.close && ctx.close(), 900);
+      return null;
+    }catch(e){
+      log("chest build sound failed", {message:e.message});
+      return null;
+    }
+  }
+
+  function playChestOpenSound(){
+    if(playAudioFile("sfxChestOpen"))return;
+    try{
+      const ctx = audioContext();
+      if(!ctx)return;
+
+      const freqs = [196.00, 261.63, 329.63, 392.00, 523.25, 783.99];
+      freqs.forEach((freq, index)=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + index * 0.045;
+
+        osc.type = index < 2 ? "square" : "triangle";
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(index < 2 ? 0.08 : 0.13, start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.24);
+      });
+
+      setTimeout(()=>ctx.close && ctx.close(), 800);
+    }catch(e){
+      log("chest open sound failed", {message:e.message});
+    }
+  }
+
+  function playCoinSpendSound(){
+    if(playAudioFile("sfxCoinSpend"))return;
+    try{
+      const ctx = audioContext();
+      if(!ctx)return;
+
+      [1046.5, 1318.5, 1568.0].forEach((freq,index)=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + index * 0.055;
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, start);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.18, start + 0.08);
+
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.2);
+      });
+
+      setTimeout(()=>ctx.close && ctx.close(), 500);
+    }catch(e){
+      log("coin spend sound failed", {message:e.message});
+    }
+  }
+
+
+
+  function q(title, desc, now, target, reward, done){
+    const pct=Math.min(100,Math.round((now/target)*100));
+    return `<div class="quest ${done?"complete":""}">
+      <strong>${done?"✅":"🎯"} ${esc(title)}</strong>
+      <div class="muted">${esc(desc)} · ${now}/${target}</div>
+      <div class="progressbar" style="margin-top:8px"><span style="width:${pct}%"></span></div>
+      <small class="muted">${esc(reward)}</small>
+    </div>`;
+  }
+
+  function renderQuests(){
+    els.questList.innerHTML=`
+      <div class="quest-group"><h4>Daily</h4>
+        ${q("Warm-up sparkle","Get 5 correct today",progress.dailyCorrect||0,5,"+25 bonus XP",progress.dailyRewards?.correct5)}
+        ${q("Holiday hero","Earn 50 XP today",progress.dailyXP||0,50,"Confetti brag rights",progress.dailyRewards?.xp50)}
+        ${q("Focus combo","Reach a 5x combo",Math.min(progress.combo||0,5),5,"Combo badge progress",(progress.combo||0)>=5)}
+      </div>
+      <div class="quest-group"><h4>Weekly</h4>
+        ${q("Weekly consistency","Get 35 correct this week",progress.weeklyCorrect||0,35,"+120 bonus XP",progress.weeklyRewards?.correct35)}
+        ${q("Weekly XP glow","Earn 350 XP this week",progress.weeklyXP||0,350,"+160 bonus XP",progress.weeklyRewards?.xp350)}
+      </div>
+      <div class="quest-group"><h4>Monthly</h4>
+        ${q("Monthly Spanish habit","Get 150 correct this month",progress.monthlyCorrect||0,150,"+500 bonus XP",progress.monthlyRewards?.correct150)}
+        ${q("Monthly glamour grind","Earn 1500 XP this month",progress.monthlyXP||0,1500,"+650 bonus XP",progress.monthlyRewards?.xp1500)}
+      </div>`;
+    renderWeeklyTestBox();
+  }
+
+  function renderWeeklyTestBox(){
+    if(weeklyTestAvailable()){
+      els.weeklyTestBox.className="test-box";
+      els.weeklyTestBox.innerHTML=`<strong>🧪 Weekly Bonus Test available</strong><p class="muted">Take a 10-question test once per week. Score-based bonus: up to +250 XP.</p><button id="startWeeklyTestBtn">Start weekly test</button>`;
+      $("startWeeklyTestBtn").onclick=startWeeklyTest;
+    } else {
+      els.weeklyTestBox.className="test-box locked";
+      els.weeklyTestBox.innerHTML=`<strong>🔒 Weekly Bonus Test locked</strong><p class="muted">Available again in about ${daysUntilTest()} day(s). Best score: ${progress.weeklyTestBest||0}/10.</p>`;
+    }
+  }
+
+  function renderWeeklyTestPanel(){
+    if(!els.testStatus || !els.testArea)return;
+
+    if(testState){
+      els.testArea.classList.remove("hidden");
+      return;
+    }
+
+    els.testArea.classList.add("hidden");
+    els.testFeedback.textContent="";
+    els.testFeedback.className="feedback";
+    els.testAnswerInput.value="";
+
+    if(weeklyTestAvailable()){
+      els.testStatus.className="test-box";
+      els.testStatus.innerHTML=`<strong>🧪 Weekly Bonus Test available</strong><p class="muted">Complete 10 questions for score-based bonus XP. Best score: ${progress.weeklyTestBest||0}/10.</p><button id="startWeeklyTestPanelBtn">Start weekly test</button>`;
+      const btn = document.getElementById("startWeeklyTestPanelBtn");
+      if(btn) btn.onclick = startWeeklyTest;
+    } else {
+      els.testStatus.className="test-box locked";
+      els.testStatus.innerHTML=`<strong>🔒 Weekly Bonus Test locked</strong><p class="muted">Available again in about ${daysUntilTest()} day(s). Best score: ${progress.weeklyTestBest||0}/10.</p>`;
+    }
+  }
+
+  function startWeeklyTest(){
+    if(!weeklyTestAvailable()){showToast("Weekly test locked","Try again in about "+daysUntilTest()+" day(s).",false); return}
+    testState={questions:shuffle(DATA).slice(0,10).map(item=>{const dir=pick(["de-es","es-de"]); return {item,dir,source:dir==="de-es"?item.de:item.es,target:dir==="de-es"?item.es:item.de}}),index:0,score:0,checked:false};
+    switchTab("weekly-test");
+    els.testArea.classList.remove("hidden");
+    showTestQuestion();
+  }
+
+  function showTestQuestion(){
+    if(!testState)return;
+    if(testState.index>=testState.questions.length){finishWeeklyTest(); return}
+    const qn=testState.questions[testState.index];
+    testState.checked=false;
+    els.testMeta.textContent=`Question ${testState.index+1}/10 · ${qn.item.level} · ${qn.item.cat} · ${qn.dir==="de-es"?"German → Spanish":"Spanish → German"}`;
+    els.testPromptText.textContent=qn.source;
+    els.testHint.textContent="Weekly test answer. No show-answer option here.";
+    els.testAnswerInput.value="";
+    els.testAnswerInput.disabled=false;
+    els.testCheckBtn.disabled=false;
+    els.testFeedback.textContent="";
+    els.testFeedback.className="feedback";
+    els.testStatus.className="test-box";
+    els.testStatus.innerHTML=`<strong>Weekly test in progress</strong><p class="muted">Score: ${testState.score}/${testState.index} answered</p>`;
+    setTimeout(()=>els.testAnswerInput.focus(),50);
+  }
+
+  function checkTestAnswer(){
+    if(!testState||testState.checked)return;
+    const qn=testState.questions[testState.index];
+    recordStudyActivity();
+    markPracticeDay();
+    const answer=els.testAnswerInput.value;
+    if(!answer.trim()){els.testFeedback.textContent="Write an answer first."; els.testFeedback.className="feedback warn"; return}
+    testState.checked=true;
+    els.testAnswerInput.disabled=true;
+    els.testCheckBtn.disabled=true;
+    if(isAccepted(answer,qn.item,qn.dir)){
+      testState.score++;
+      playCorrectSound();
+      showCorrectFlash(); confetti();
+      els.testFeedback.textContent="Correct.";
+      els.testFeedback.className="feedback good";
+    } else {
+      els.testFeedback.textContent=`Not quite. Correct answer: ${displayAnswer(qn.item,qn.dir)}`;
+      els.testFeedback.className="feedback bad";
+    }
+  }
+
+  function nextTestQuestion(){
+    if(!testState)return;
+    if(!testState.checked){checkTestAnswer(); if(!testState.checked)return}
+    testState.index++;
+    showTestQuestion();
+  }
+
+  function finishWeeklyTest(){
+    const score=testState?.score||0;
+    const bonus=score>=10?250:score>=8?180:score>=6?110:score>=4?50:15;
+    const levelBefore = levelName(progress.xp);
+    progress.lastWeeklyTestAt=new Date().toISOString();
+    progress.weeklyTestBest=Math.max(progress.weeklyTestBest||0,score);
+    progress.xp+=bonus; progress.weeklyXP+=bonus; progress.monthlyXP+=bonus; showFloatingXP(bonus);
+    els.testArea.classList.add("hidden");
+    els.testStatus.className="test-box";
+    els.testStatus.innerHTML=`<strong>Test complete: ${score}/10</strong><p class="muted">Bonus awarded: +${bonus} XP. Next test is available in 7 days.</p>`;
+    testState=null;
+    showRainbowPulse(); playVictorySound(); showToast("🧪 Weekly test complete!",`${score}/10 · +${bonus} XP`); if(levelName(progress.xp)!==levelBefore){ showLevelUpCelebration(levelBefore, levelName(progress.xp)); }
+    award(); checkChestMilestones(); save();
+  }
+
+
+  const CHEST_MILESTONES = [
+    {id:"xp100", kind:"xp", value:100, title:"100 XP Chest"},
+    {id:"xp500", kind:"xp", value:500, title:"500 XP Chest"},
+    {id:"xp1000", kind:"xp", value:1000, title:"1000 XP Chest"},
+    {id:"xp2000", kind:"xp", value:2000, title:"2000 XP Chest"},
+    {id:"correct25", kind:"correct", value:25, title:"25 Correct Chest"},
+    {id:"correct75", kind:"correct", value:75, title:"75 Correct Chest"},
+    {id:"correct150", kind:"correct", value:150, title:"150 Correct Chest"},
+    {id:"combo10", kind:"combo", value:10, title:"10x Combo Chest"},
+    {id:"weeklyTest8", kind:"weeklyTestBest", value:8, title:"Weekly Test Star Chest"}
+  ];
+
+  const CHEST_REWARDS = [
+    {emoji:"💰", title:"Bonus XP", desc:"+75 XP", rare:false, apply:()=>{progress.xp+=75; progress.weeklyXP+=75; progress.monthlyXP+=75; showFloatingXP(75);}},
+    {emoji:"💎", title:"Big XP Gem", desc:"+150 XP", rare:false, apply:()=>{progress.xp+=150; progress.weeklyXP+=150; progress.monthlyXP+=150; showFloatingXP(150);}},
+    {emoji:"🛡️", title:"Streak Shield", desc:"Collectible shield for motivation", rare:false, apply:()=>{progress.rewards.streakShields=(progress.rewards.streakShields||0)+1;}},
+    {emoji:"🔥", title:"Combo Boost", desc:"+1 combo boost item", rare:false, apply:()=>{progress.rewards.comboBoosts=(progress.rewards.comboBoosts||0)+1;}},
+    {emoji:"💎", title:"Double XP Potion", desc:"2x XP for next 15 correct answers", rare:false, apply:()=>{progress.rewards.doubleXPPotions=(progress.rewards.doubleXPPotions||0)+1;}},
+    {emoji:"🌈", title:"Rainbow Token", desc:"Collectible reroll token", rare:false, apply:()=>{progress.rewards.rainbowTokens=(progress.rewards.rainbowTokens||0)+1;}},
+    {emoji:"👑", title:"Royal Jackpot", desc:"+250 XP jackpot", rare:true, apply:()=>{progress.xp+=250; progress.weeklyXP+=250; progress.monthlyXP+=250; showFloatingXP(250);}},
+    {emoji:"🎫", title:"Holiday Pass", desc:"+25% XP for 7 days", rare:true, apply:()=>{const d=new Date(); d.setDate(d.getDate()+7); progress.activeBoost.holidayPassUntil=d.toISOString();}}
+  ];
+
+  let activeChest = null;
+  let activeChestReward = null;
+  let chestAutoOpenTimer = null;
+
+  function milestoneReached(m){
+    if(m.kind==="xp")return progress.xp >= m.value;
+    if(m.kind==="correct")return progress.correct >= m.value;
+    if(m.kind==="combo")return (progress.bestCombo||0) >= m.value;
+    if(m.kind==="weeklyTestBest")return (progress.weeklyTestBest||0) >= m.value;
+    return false;
+  }
+
+  function checkChestMilestones(){
+    progress.chests ||= [];
+    progress.openedChests ||= {};
+    for(const m of CHEST_MILESTONES){
+      const alreadyQueued = progress.chests.some(c => c.id === m.id);
+      if(!progress.openedChests[m.id] && !alreadyQueued && milestoneReached(m)){
+        progress.chests.push({
+          id:m.id,
+          title:m.title,
+          reason:`Milestone reached: ${m.kind} ${m.value}`,
+          createdAt:new Date().toISOString()
+        });
+        showToast("🎁 Treasure chest unlocked!", m.title, true);
+        showGoldBurst();
+      }
+    }
+  }
+
+  function pickChestReward(){
+    const roll = Math.random();
+    if(roll > 0.88) return CHEST_REWARDS.find(r => r.rare) || pick(CHEST_REWARDS);
+    return pick(CHEST_REWARDS.filter(r => !r.rare));
+  }
+
+  function showCoinBurst(){
+    const wrap=document.createElement("div");
+    wrap.className="coin-burst";
+    const bits=["🪙","💰","✨","⭐","💎","🏆"];
+    for(let i=0;i<58;i++){
+      const s=document.createElement("span");
+      s.textContent=pick(bits);
+      const angle=Math.random()*Math.PI*2;
+      const dist=100+Math.random()*320;
+      s.style.setProperty("--x",Math.cos(angle)*dist+"px");
+      s.style.setProperty("--y",Math.sin(angle)*dist+"px");
+      s.style.setProperty("--r",(Math.random()*900-450)+"deg");
+      s.style.animationDelay=(Math.random()*170)+"ms";
+      wrap.appendChild(s);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(()=>wrap.remove(),1350);
+  }
+
+  function openChestModal(){
+    progress.chests ||= [];
+    if(!progress.chests.length){
+      showToast("No chests yet","Reach milestones to unlock treasure chests.",false);
+      return;
+    }
+    activeChest = progress.chests[0];
+    activeChestReward = null;
+    els.chestReason.textContent = "A milestone chest is ready.";
+    els.treasureChest.classList.remove("opened");
+    els.chestGlow.classList.remove("visible");
+    els.chestCard.classList.remove("jackpot");
+    els.rewardItem.classList.remove("visible");
+    els.rewardItem.innerHTML = "";
+    els.chestModal.classList.remove("hidden");
+    els.chestAutoText.textContent = "Preparing your reward...";
+    const buildAudio = playChestBuildSound();
+
+    if(chestAutoOpenTimer) clearTimeout(chestAutoOpenTimer);
+
+    const autoOpen = () => {
+      if(activeChest && !activeChestReward){
+        openActiveChest();
+      }
+    };
+
+    if(buildAudio){
+      buildAudio.onended = autoOpen;
+      buildAudio.onerror = () => {
+        chestAutoOpenTimer = setTimeout(autoOpen, 14000);
+      };
+
+      if(Number.isFinite(buildAudio.duration) && buildAudio.duration > 0){
+        chestAutoOpenTimer = setTimeout(
+        autoOpen,
+        Math.max(1000, Math.ceil(buildAudio.duration * 1000) - 3000)
+      );
+      } else {
+        chestAutoOpenTimer = setTimeout(autoOpen, 14000);
+      }
+    } else {
+      chestAutoOpenTimer = setTimeout(autoOpen, 14000);
+    }
+  }
+
+  function openActiveChest(){
+    if(!activeChest || activeChestReward)return;
+    if(chestAutoOpenTimer){
+      clearTimeout(chestAutoOpenTimer);
+      chestAutoOpenTimer = null;
+    }
+    const buildAudio = document.getElementById("sfxChestBuild");
+    if(buildAudio){
+      buildAudio.onended = null;
+      buildAudio.onerror = null;
+      // Intentionally do not stop playback.
+      // Let the build-up music finish naturally even after the chest opens.
+    }
+
+    activeChestReward = pickChestReward();
+    playChestOpenSound();
+
+    els.treasureChest.classList.add("opened");
+    els.chestAutoText.textContent = "Opening...";
+    els.chestGlow.classList.add("visible");
+    activeChestReward.apply();
+    progress.openedChests[activeChest.id] = true;
+    progress.chests = progress.chests.filter(c => c.id !== activeChest.id);
+
+    showCoinBurst();
+    playVictorySound();
+
+    if(activeChestReward.rare){
+      els.chestCard.classList.add("jackpot");
+      showRainbowPulse();
+    }
+
+    setTimeout(()=>{
+      els.rewardItem.innerHTML = `
+        <span class="emoji">${activeChestReward.emoji}</span>
+        <strong>${esc(activeChestReward.title)}</strong>
+        <p class="muted">${esc(activeChestReward.desc)}</p>
+      `;
+      els.rewardItem.classList.add("visible");
+      els.chestAutoText.textContent = "Reward collected automatically.";
+      setTimeout(closeChestModal, 2600);
+      save();
+    }, 520);
+  }
+
+  function closeChestModal(){
+    els.chestModal.classList.add("hidden");
+    if(chestAutoOpenTimer){
+      clearTimeout(chestAutoOpenTimer);
+      chestAutoOpenTimer = null;
+    }
+    activeChest = null;
+    activeChestReward = null;
+    renderAll();
+  }
+
+  function useComboBoost(){
+    progress.rewards ||= {};
+    progress.activeBoost ||= {};
+    if((progress.rewards.comboBoosts||0)<=0)return;
+    progress.rewards.comboBoosts--;
+    progress.activeBoost.comboRemaining = (progress.activeBoost.comboRemaining || 0) + 10;
+    showToast("🔥 Combo Boost activated!", "+8 bonus XP for the next 10 correct answers.", true);
+    save();
+  }
+
+  function useDoubleXP(){
+    progress.rewards ||= {};
+    progress.activeBoost ||= {};
+    if((progress.rewards.doubleXPPotions||0)<=0)return;
+    progress.rewards.doubleXPPotions--;
+    progress.activeBoost.doubleXPRemaining = (progress.activeBoost.doubleXPRemaining || 0) + 15;
+    showToast("💎 Double XP activated!", "2x XP for the next 15 correct answers.", true);
+    save();
+  }
+
+  function spendRainbowToken(type){
+    progress.rewards ||= {};
+    progress.activeBoost ||= {};
+
+    if((progress.rewards.rainbowTokens || 0) <= 0){
+      showToast("🌈 No Rainbow Tokens", "Open chests to find more tokens.", false);
+      return;
+    }
+
+    progress.rewards.rainbowTokens--;
+
+    if(type === "xp50"){
+      const levelBefore = levelName(progress.xp);
+      progress.xp += 50;
+      progress.weeklyXP = (progress.weeklyXP || 0) + 50;
+      progress.monthlyXP = (progress.monthlyXP || 0) + 50;
+      showFloatingXP(50);
+      if(levelName(progress.xp) !== levelBefore) showLevelUpCelebration(levelBefore, levelName(progress.xp));
+      showToast("🌈 Rainbow Shop", "+50 XP bought for 1 token.", true);
+    } else if(type === "shield"){
+      progress.rewards.streakShields = (progress.rewards.streakShields || 0) + 1;
+      showToast("🌈 Rainbow Shop", "Streak Shield bought for 1 token.", true);
+    } else if(type === "combo"){
+      progress.rewards.comboBoosts = (progress.rewards.comboBoosts || 0) + 1;
+      showToast("🌈 Rainbow Shop", "Combo Boost bought for 1 token.", true);
+    } else if(type === "doublexp"){
+      progress.rewards.doubleXPPotions = (progress.rewards.doubleXPPotions || 0) + 1;
+      showToast("🌈 Rainbow Shop", "Double XP Potion bought for 1 token.", true);
+    }
+
+    playCoinSpendSound();
+    showGoldBurst();
+    // Shop purchases intentionally do not unlock badges or treasure chests.
+    // Badges/chests are reserved for practice, quests, tests, and chest rewards.
+    save();
+  }
+
+  function renderChestPanel(){
+    if(!els.chestPanel)return;
+    const count = (progress.chests||[]).length;
+    const rewards = progress.rewards || {};
+    const active = progress.activeBoost || {};
+    const next = CHEST_MILESTONES.find(m => !progress.openedChests?.[m.id] && !(progress.chests||[]).some(c=>c.id===m.id));
+
+    els.chestPanel.innerHTML = `
+      <div class="toolbar">
+        <div>
+          <strong>🎁 Treasure Chests & Inventory</strong>
+          <div class="muted">${count ? `${count} chest(s) ready to open.` : "Reach milestones to unlock chests."}</div>
+        </div>
+        <button id="openChestPanelBtn" ${count ? "" : "disabled"}>Open Chest</button>
+      </div>
+
+      <div class="inventory-grid">
+        <div class="inventory-item"><span>🛡️</span>Streak Shields: ${rewards.streakShields||0}</div>
+        <div class="inventory-item"><span>🔥</span>Combo Boosts: ${rewards.comboBoosts||0}<div class="inventory-actions"><button class="small" id="useComboBoostBtn" ${(rewards.comboBoosts||0)>0 ? "" : "disabled"}>Use</button></div></div>
+        <div class="inventory-item"><span>💎</span>Double XP: ${rewards.doubleXPPotions||0}<div class="inventory-actions"><button class="small" id="useDoubleXPBtn" ${(rewards.doubleXPPotions||0)>0 ? "" : "disabled"}>Use</button></div></div>
+        <div class="inventory-item"><span>🌈</span>Rainbow Tokens: ${rewards.rainbowTokens||0}</div>
+      </div>
+
+      <div class="rainbow-shop">
+        <h4>🌈 Rainbow Shop</h4>
+        <div class="muted">Spend Rainbow Tokens on useful rewards. Each item costs 1 token.</div>
+        <div class="rainbow-shop-grid">
+          <button class="shop-buy-btn" id="buyRainbowXPBtn" ${(rewards.rainbowTokens||0)>0 ? "" : "disabled"}>+50 XP<small>1 🌈 token</small></button>
+          <button class="shop-buy-btn" id="buyRainbowShieldBtn" ${(rewards.rainbowTokens||0)>0 ? "" : "disabled"}>🛡️ Streak Shield<small>1 🌈 token</small></button>
+          <button class="shop-buy-btn" id="buyRainbowComboBtn" ${(rewards.rainbowTokens||0)>0 ? "" : "disabled"}>🔥 Combo Boost<small>1 🌈 token</small></button>
+          <button class="shop-buy-btn" id="buyRainbowDoubleXPBtn" ${(rewards.rainbowTokens||0)>0 ? "" : "disabled"}>💎 Double XP Potion<small>1 🌈 token</small></button>
+        </div>
+      </div>
+
+      <div class="active-effect">
+        Active Effects:
+        ${active.comboRemaining ? `🔥 Combo Boost: ${active.comboRemaining} correct answers left. ` : ""}
+        ${active.doubleXPRemaining ? `💎 Double XP: ${active.doubleXPRemaining} correct answers left. ` : ""}
+        ${isHolidayPassActive() ? `🎫 Holiday Pass active until ${new Date(active.holidayPassUntil).toLocaleDateString()}. ` : ""}
+        ${(!active.comboRemaining && !active.doubleXPRemaining && !isHolidayPassActive()) ? "None active." : ""}
+      </div>
+
+      <p class="muted" style="margin-bottom:0">${next ? `Next chest: ${esc(next.title)} (${esc(next.kind)} ${next.value})` : "All current chest milestones completed."}</p>
+    `;
+
+    document.getElementById("openChestPanelBtn").onclick = openChestModal;
+    document.getElementById("useComboBoostBtn").onclick = useComboBoost;
+    document.getElementById("useDoubleXPBtn").onclick = useDoubleXP;
+    document.getElementById("buyRainbowXPBtn").onclick = () => spendRainbowToken("xp50");
+    document.getElementById("buyRainbowShieldBtn").onclick = () => spendRainbowToken("shield");
+    document.getElementById("buyRainbowComboBtn").onclick = () => spendRainbowToken("combo");
+    document.getElementById("buyRainbowDoubleXPBtn").onclick = () => spendRainbowToken("doublexp");
+  }
+
+  function renderStats(){
+    const acc=progress.attempts?Math.round(progress.correct/progress.attempts*100):0;
+    const due=DATA.filter(x=>isDue(progress.cards[idOf(x)])).length;
+    const next=progress.xp<120?120:progress.xp<400?400:progress.xp<900?900:progress.xp<1600?1600:progress.xp<2600?2600:3600;
+    const prev=progress.xp<120?0:progress.xp<400?120:progress.xp<900?400:progress.xp<1600?900:progress.xp<2600?1600:2600;
+    const pct=Math.min(100,Math.max(0,Math.round((progress.xp-prev)/(next-prev)*100)));
+    els.attempts.textContent=progress.attempts; els.correct.textContent=progress.correct; els.errors.textContent=progress.errors; els.accuracy.textContent=acc+"%"; els.xp.textContent=progress.xp;
+    els.streak.textContent=(progress.currentStreak||0)+" day"; els.dueCount.textContent=due; els.userLevel.textContent=levelName(progress.xp);
+    els.dashboardXP.textContent=progress.xp; els.dashboardTitle.textContent=titleForXP(progress.xp); els.dashboardCombo.textContent=progress.bestCombo||0;
+    els.levelProgress.style.width=pct+"%"; els.levelRing.style.setProperty("--ring",pct+"%"); els.ringLevel.textContent=levelName(progress.xp); els.ringPct.textContent=pct+"%";
+    els.levelText.textContent=`${pct}% toward next level · best streak: ${progress.bestStreak||0} · best combo: ${progress.bestCombo||0}`;
+  }
+
+  function renderBadges(){
+    const unlocked = BADGES.filter(b => progress.badges[b.id]).length;
+    if(els.badgeCountText) els.badgeCountText.textContent = `(${unlocked}/${BADGES.length})`;
+    els.badgeGrid.innerHTML=BADGES.map(b=>`<div class="badge ${progress.badges[b.id]?"unlocked":""}"><span class="emoji">${b.emoji}</span><strong>${esc(b.title)}</strong><small>${esc(b.desc)}</small></div>`).join("");
+  }
+
+  function renderReview(){
+    const rows=DATA.map(item=>({item,card:progress.cards[idOf(item)]})).filter(x=>x.card&&(x.card.errors>0||isDue(x.card))).sort((a,b)=>new Date(a.card.dueAt)-new Date(b.card.dueAt)).slice(0,25);
+    els.reviewList.innerHTML=rows.length?rows.map(({item,card})=>`<div class="item"><strong>${esc(item.de)}</strong><span>${esc(displayAnswer(item,"de-es"))}</span><br><span class="pill ${isDue(card)?"due":""}">${isDue(card)?"Due now":"Due "+new Date(card.dueAt).toLocaleDateString()}</span><span class="pill">Box ${card.box||0}</span><span class="pill">Errors ${card.errors||0}</span></div>`).join(""):'<p class="muted">No review items yet.</p>';
+  }
+
+  function renderErrors(){
+    els.errorList.innerHTML=progress.recentErrors.length?progress.recentErrors.map(e=>`<div class="item"><strong>${esc(e.source)}</strong><span class="muted">Your answer: ${esc(e.given)}</span><br><span>Correct: <b>${esc(e.expected)}</b></span><br><span class="tag">${esc(e.cat)}</span><span class="tag">${esc(e.level)}</span></div>`).join(""):'<p class="muted">No errors yet.</p>';
+  }
+
+  function renderRandom(){
+    els.randomList.innerHTML=shuffle(DATA).slice(0,30).map(x=>`<div class="item"><strong>${esc(x.de)}</strong><span>${esc(displayAnswer(x,"de-es"))}</span><br><span class="tag">${esc(x.cat)}</span><span class="tag">${esc(x.level)}</span><span class="tag">${esc(x.type)}</span><button class="secondary small" onclick="speak('${jsEsc(x.es)}','es-ES')">🔊 ES</button></div>`).join("");
+  }
+
+  function renderPhrasebook(){
+    if(!els.phrasebook)return;
+    if(!els.phrasebookCategoryFilter.value) els.phrasebookCategoryFilter.value = "All categories";
+    if(!els.phrasebookLevelFilter.value) els.phrasebookLevelFilter.value = "all";
+
+    const cat=els.phrasebookCategoryFilter.value||"All categories";
+    const lvl=els.phrasebookLevelFilter.value||"all";
+
+    const rows=DATA
+      .filter(x=>x.type==="phrase")
+      .filter(x=>(cat==="All categories"||x.cat===cat)&&matchLevel(x.level,lvl));
+
+    els.phrasebook.innerHTML=rows.length
+      ? rows.map(x=>`<tr><td>${esc(x.de)}</td><td>${esc(displayAnswer(x,"de-es"))}</td><td>${esc(x.cat)}<br><span class="tag">${esc(x.level)}</span></td><td><button class="secondary small" onclick="speak('${jsEsc(x.es)}','es-ES')">🔊</button></td></tr>`).join("")
+      : '<tr><td colspan="4" class="muted">No phrases found.</td></tr>';
+  }
+
+
+  function nextLevelThresholdForXP(xp){
+    if(xp < 120)return 120;
+    if(xp < 400)return 400;
+    if(xp < 900)return 900;
+    if(xp < 1600)return 1600;
+    if(xp < 2600)return 2600;
+    if(xp < 4000)return 4000;
+    return xp + 500;
+  }
+
+  function debugTestLevelUp(){
+    const before = levelName(progress.xp);
+    showLevelUpCelebration(before, before + " Test");
+    log("debug test", {system:"level-up visual"});
+  }
+
+  function debugAddNextLevelXP(){
+    const before = levelName(progress.xp);
+    const target = nextLevelThresholdForXP(progress.xp);
+    const add = Math.max(1, target - progress.xp);
+    progress.xp += add;
+    progress.dailyXP = (progress.dailyXP || 0) + add;
+    progress.weeklyXP = (progress.weeklyXP || 0) + add;
+    progress.monthlyXP = (progress.monthlyXP || 0) + add;
+    showFloatingXP(add);
+    showLevelUpCelebration(before, levelName(progress.xp));
+    save();
+    log("debug test", {system:"add next level xp", added:add, target});
+  }
+
+  function debugTestBadgeUnlock(){
+    showGoldBurst();
+    playBadgeSound();
+    showToast("🏅 Debug badge unlocked!", "Badge animation and sound test.", true);
+    log("debug test", {system:"badge"});
+  }
+
+  function debugTestChestFlow(){
+    progress.chests ||= [];
+    const id = "debugChest-" + Date.now();
+    progress.chests.unshift({
+      id,
+      title:"Debug Test Chest",
+      reason:"Debug test chest",
+      createdAt:new Date().toISOString()
+    });
+    showToast("🎁 Debug chest added!", "Opening test chest flow.", true);
+    save();
+    openChestModal();
+    log("debug test", {system:"chest", id});
+  }
+
+  function debugAddRainbowTokens(){
+    progress.rewards ||= {};
+    progress.rewards.rainbowTokens = (progress.rewards.rainbowTokens || 0) + 10;
+    showRainbowPulse();
+    showToast("🌈 Debug tokens added!", "+10 Rainbow Tokens.", true);
+    save();
+    log("debug test", {system:"rainbow tokens", total:progress.rewards.rainbowTokens});
+  }
+
+  function debugSpendDoubleXP(){
+    progress.rewards ||= {};
+    if((progress.rewards.rainbowTokens || 0) <= 0){
+      progress.rewards.rainbowTokens = 1;
+    }
+    spendRainbowToken("doublexp");
+    log("debug test", {system:"shop spend doublexp"});
+  }
+
+  function debugTestCoinSound(){
+    playCoinSpendSound();
+    showGoldBurst();
+    showToast("🪙 Spend sound test", "Coin spend sound played.", false);
+    log("debug test", {system:"coin spend sound"});
+  }
+
+  function debugTestCorrectEffect(){
+    playCorrectSound();
+    showCorrectFlash();
+    confetti();
+    showFloatingXP(12);
+    log("debug test", {system:"correct effect"});
+  }
+
+  function bindDebugSystemTests(){
+    const bind = (id, fn) => {
+      const el = document.getElementById(id);
+      if(el) el.onclick = fn;
+    };
+    bind("debugTestLevelUpBtn", debugTestLevelUp);
+    bind("debugAddNextLevelXPBtn", debugAddNextLevelXP);
+    bind("debugTestBadgeBtn", debugTestBadgeUnlock);
+    bind("debugTestChestBtn", debugTestChestFlow);
+    bind("debugAddRainbowBtn", debugAddRainbowTokens);
+    bind("debugSpendDoubleXPBtn", debugSpendDoubleXP);
+    bind("debugCoinSoundBtn", debugTestCoinSound);
+    bind("debugCorrectBtn", debugTestCorrectEffect);
+    bind("debugRainbowBtn", () => { showRainbowPulse(); playVictorySound(); log("debug test", {system:"rainbow pulse"}); });
+    bind("debugGoldBtn", () => { showGoldBurst(); playBadgeSound(); log("debug test", {system:"gold burst"}); });
+  }
+
+  function renderDebugQuestionSearch(){
+    const q=norm(els.debugQuestionSearch.value||"");
+    const rows=DATA.map((item,index)=>({item,index})).filter(({item})=>{
+      if(!q)return true;
+      return norm([item.de,item.es,...(item.deAlt||[]),...(item.esAlt||[]),item.cat,item.level,item.type].join(" ")).includes(q);
+    }).slice(0,100);
+    els.debugQuestionResults.innerHTML=rows.length?rows.map(({item,index})=>`<div class="item"><strong>${esc(item.de)}</strong><span>${esc(displayAnswer(item,"de-es"))}</span><br><span class="tag">${esc(item.cat)}</span><span class="tag">${esc(item.level)}</span><span class="tag">${esc(item.type)}</span><div class="row" style="margin-top:8px"><button class="small" data-force="${index}">Use this question</button></div></div>`).join(""):'<p class="muted">No matching questions found.</p>';
+    els.debugQuestionResults.querySelectorAll("[data-force]").forEach(btn=>btn.onclick=()=>forceQuestion(Number(btn.dataset.force)));
+    log("debug search", {query:q,count:rows.length});
+  }
+
+  function forceQuestion(index){
+    const item=DATA[index];
+    if(!item)return;
+    const choice=els.debugDirection.value;
+    const dir=choice==="mixed"?pick(["de-es","es-de"]):choice;
+    dueOnly=false;
+    setPrompt(item,dir,true);
+    switchTab("practice");
+    log("forced question",{index,source:dir==="de-es"?item.de:item.es,answers:acceptedAnswers(item,dir)});
+  }
+
+
+  let calendarDate = new Date();
+
+  function renderCalendar(){
+    if(!els.calendarGrid || !els.calendarTitle)return;
+
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const monthName = first.toLocaleString(undefined, {month:"long", year:"numeric"});
+    els.calendarTitle.textContent = monthName;
+
+    const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    let html = names.map(n => `<div class="calendar-day-name">${n}</div>`).join("");
+
+    const startOffset = (first.getDay() + 6) % 7;
+    for(let i=0;i<startOffset;i++) html += `<div class="calendar-day empty"></div>`;
+
+    const todayKeyValue = today();
+    let monthStudyMinutes = 0;
+    let studiedDays = 0;
+
+    for(let day=1; day<=last.getDate(); day++){
+      const d = new Date(year, month, day);
+      const key = d.toISOString().slice(0,10);
+      const minutes = studyMinutesForDay(key);
+      if(minutes > 0){
+        monthStudyMinutes += minutes;
+        studiedDays++;
+      }
+
+      let cls = "";
+      let mark = "";
+      if(progress.practiceDays?.[key]){
+        cls = "practiced";
+        mark = "✅ Practiced";
+      } else if(progress.protectedDays?.[key]){
+        cls = "protected";
+        mark = "🛡️ Protected";
+      } else if(progress.missedDays?.[key]){
+        cls = "missed";
+        mark = "❌ Missed";
+      } else if(key < todayKeyValue && progress.lastPracticeDate && key >= progress.lastPracticeDate){
+        cls = "missed";
+        mark = "❌ Missed";
+      } else {
+        mark = key > todayKeyValue ? "Future" : "No data";
+      }
+
+      html += `<div class="calendar-day ${cls}">
+        <div class="date">${day}</div>
+        <span class="mark">${mark}</span>
+        <span class="study-time">⏱️ ${minutes} min</span>
+      </div>`;
+    }
+
+    if(els.calendarStudySummary){
+      const avg = studiedDays ? Math.round(monthStudyMinutes / studiedDays) : 0;
+      els.calendarStudySummary.innerHTML = `<div class="calendar-study-summary">
+        <strong>⏱️ Study time this month</strong>
+        <span>Total: ${monthStudyMinutes} min</span>
+        <span>Studied days: ${studiedDays}</span>
+        <span>Average: ${avg} min/day</span>
+      </div>`;
+    }
+
+    els.calendarGrid.innerHTML = html;
+  }
+
+  function renderAll(){
+    updatePeriodCounters();
+    updateWeeklyTestTabVisibility();
+    renderStats(); renderQuests(); renderBadges(); renderReview(); renderErrors(); renderWeeklyTestBox(); renderWeeklyTestPanel(); renderChestPanel(); renderCalendar(); renderRandom(); renderPhrasebook();
+  }
+
+  function exportProgress(){
+    const blob=new Blob([JSON.stringify(progress,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download="spanish-holiday-progress-v2.json"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importProgress(){
+    const file=els.importFile.files?.[0];
+    if(!file){alert("Choose a JSON file first."); return}
+    const r=new FileReader();
+    r.onload=()=>{try{progress={...fresh(),...JSON.parse(r.result)}; save(); applyTheme();
+    setSoundButton(); newPrompt(); alert("Progress imported.");}catch(e){alert("Could not import JSON."); log("import error", {message:e.message})}};
+    r.readAsText(file);
+  }
+
+
+  function initHolidayCursor(){
+    if(window.matchMedia && window.matchMedia("(pointer: coarse)").matches)return;
+
+    const cursor = document.createElement("div");
+    cursor.className = "holiday-cursor hidden";
+    const dot = document.createElement("div");
+    dot.className = "holiday-cursor-dot hidden";
+    document.body.appendChild(cursor);
+    document.body.appendChild(dot);
+
+    let x = 0, y = 0, lastTrail = 0;
+    const trailBits = ["✨","🌊","☀️","🌴","🇪🇸"];
+
+    function isClickable(target){
+      return !!target.closest("button,a,select,input,textarea,[data-go-tab],[data-tab],.treasure-chest");
+    }
+
+    document.addEventListener("mousemove", e => {
+      x = e.clientX;
+      y = e.clientY;
+      cursor.style.left = x + "px";
+      cursor.style.top = y + "px";
+      dot.style.left = x + "px";
+      dot.style.top = y + "px";
+
+      cursor.classList.remove("hidden");
+      dot.classList.remove("hidden");
+
+      const target = e.target;
+      cursor.classList.toggle("clickable", isClickable(target));
+      cursor.classList.toggle("typing", !!target.closest("input,textarea"));
+
+      const now = performance.now();
+      if(now - lastTrail > 75 && Math.random() > 0.45){
+        lastTrail = now;
+        const t = document.createElement("span");
+        t.className = "holiday-cursor-trail";
+        t.textContent = pick(trailBits);
+        t.style.left = (x + (Math.random()*14 - 7)) + "px";
+        t.style.top = (y + (Math.random()*14 - 7)) + "px";
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(), 700);
+      }
+    }, {passive:true});
+
+    document.addEventListener("mousedown", () => {
+      cursor.style.transform = "translate(-50%, -50%) scale(.82) rotate(8deg)";
+      dot.style.transform = "translate(-50%, -50%) scale(1.8)";
+    });
+
+    document.addEventListener("mouseup", () => {
+      cursor.style.transform = "";
+      dot.style.transform = "";
+    });
+
+    document.addEventListener("mouseleave", () => {
+      cursor.classList.add("hidden");
+      dot.classList.add("hidden");
+    });
+
+    document.addEventListener("mouseenter", () => {
+      cursor.classList.remove("hidden");
+      dot.classList.remove("hidden");
+    });
+  }
+
+
+
+  function flushStudySession(){
+    if(progress && progress.lastStudyActivityAt){
+      recordStudyActivity();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    }
+  }
+
+
+  function init(){
+    log("init start",{cards:DATA.length});
+    document.addEventListener("visibilitychange", flushStudySession);
+    window.addEventListener("beforeunload", flushStudySession);
+    initHolidayCursor();
+    const catOpts=categories().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    els.categoryFilter.innerHTML=catOpts; els.categoryFilter.value="All categories";
+    els.phrasebookCategoryFilter.innerHTML=catOpts; els.phrasebookCategoryFilter.value="All categories";
+    els.phrasebookLevelFilter.value="all";
+    applyTheme();
+
+    document.querySelectorAll(".tab-btn").forEach(btn=>btn.onclick=()=>switchTab(btn.dataset.tab));
+    document.querySelectorAll("[data-go-tab]").forEach(btn=>btn.onclick=()=>switchTab(btn.dataset.goTab));
+    els.prevMonthBtn.onclick=()=>{calendarDate.setMonth(calendarDate.getMonth()-1); renderCalendar();};
+    els.nextMonthBtn.onclick=()=>{calendarDate.setMonth(calendarDate.getMonth()+1); renderCalendar();};
+
+    els.themeSelect.onchange=()=>{progress.theme=els.themeSelect.value; applyTheme(); save()};
+    els.soundToggleBtn.onclick=()=>{progress.soundMuted=!progress.soundMuted; setSoundButton(); save(false)};
+    [els.levelFilter,els.mode,els.typeFilter,els.categoryFilter].forEach(el=>el.onchange=()=>{dueOnly=false; newPrompt()});
+    els.checkBtn.onclick=check;
+    els.showBtn.onclick=()=>reveal(true);
+    els.nextBtn.onclick=()=>{dueOnly=false; newPrompt()};
+    els.speakPromptBtn.onclick=()=>current&&speak(current.source,current.sourceLang);
+    els.speakAnswerBtn.onclick=()=>current&&speak(displayAnswer(current.item,current.dir),current.targetLang);
+    els.answerInput.onkeydown=e=>{if(e.key==="Enter"){if(!checked)check();else newPrompt()}};
+
+    els.reviewDueBtn.onclick=()=>{dueOnly=true; switchTab("practice"); newPrompt()};
+    els.shuffleList.onclick=renderRandom;
+    els.phrasebookCategoryFilter.onchange=renderPhrasebook;
+    els.phrasebookLevelFilter.onchange=renderPhrasebook;
+
+    els.exportBtn.onclick=exportProgress;
+    els.importBtn.onclick=importProgress;
+    els.resetStats.onclick=()=>{if(confirm("Reset all local progress?")){const theme=progress.theme; progress=fresh(); progress.theme=theme; save(); applyTheme(); setSoundButton(); newPrompt()}};
+
+    els.testCheckBtn.onclick=checkTestAnswer;
+    els.testNextBtn.onclick=nextTestQuestion;
+    els.exitTestBtn.onclick=()=>switchTab("dashboard");
+    els.testAnswerInput.onkeydown=e=>{if(e.key==="Enter")nextTestQuestion()};
+
+    els.debugQuestionSearch.oninput=renderDebugQuestionSearch;
+    els.debugDirection.onchange=renderDebugQuestionSearch;
+    els.debugClearSearchBtn.onclick=()=>{els.debugQuestionSearch.value=""; renderDebugQuestionSearch()};
+    els.clearDebugBtn.onclick=()=>{els.debugLog.textContent=""};
+    bindDebugSystemTests();
+    if(els.closeChestBtn) els.closeChestBtn.onclick=closeChestModal;
+
+    renderAll(); renderRandom(); renderPhrasebook(); renderDebugQuestionSearch(); newPrompt();
+    setTimeout(renderPhrasebook, 0);
+    log("init complete");
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
